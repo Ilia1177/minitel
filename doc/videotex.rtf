@@ -1,0 +1,211 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;\f1\fmodern\fcharset0 Courier;\f2\fmodern\fcharset0 Courier-Bold;
+}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+{\info
+{\title Liste des codes VIDEOTEXT (Minitel)}
+{\author -}}\paperw11900\paperh16840\margl1417\margr1417\margb1417\margt1417\vieww22080\viewh13200\viewkind0
+\deftab708
+\pard\pardeftab708\qc\partightenfactor0
+
+\f0\fs32 \cf0 Liste des codes VIDEOTEXT (Minitel)
+\f1\fs20 \
+\pard\pardeftab708\partightenfactor0
+\cf0 \
+\pard\pardeftab708\partightenfactor0
+
+\f2\b \cf0 00    ' caract\'e8re null\
+05    ' demande d'identification\
+07    ' dring\
+08    ' curseur \'e0 gauche\
+09    ' curseur \'e0 droite\
+0A    ' curseur en bas\
+0B    ' curseur en haut\
+0C    ' efacement de page\
+0D    ' retour chariot\
+0E    ' passage en G1\
+0F    ' passage en G0\
+11    ' curseur on\
+12 XX ' r\'e9p\'e9tition\
+   XX    ' Nombre de r\'e9p\'e9tition + 40\
+13 XX ' touches sp\'e9ciales et commandes diverses\
+   41    ' envoi\
+   42    ' retour\
+   43    ' r\'e9p\'e9tition\
+   44    ' guide\
+   45    ' annulation\
+   46    ' sommaire\
+   47    ' correction\
+   48    ' suite\
+   49    ' connection-fin\
+   4A    ' mise en marche correction d'erreur\
+   4B    ' arret correction d'erreur\
+   4C    ' acq. retournement modem (1200-75)\
+   4D    ' acq. retournement inverse (75-1200)\
+   50    ' aquittement connexion\
+   51    ' aquittement changement vitesse\
+   53    ' aquittement d\'e9t porteuse (connexion, decon. modem)\
+   54    ' aquittement prise p\'e9ri. en service\
+   56    ' acq. changement mode de fonctionnement\
+   57    ' acq. mise en transparence\
+   6C    ' d\'e9tection sonnerie (M2)\
+14    ' curseur off\
+18    ' efface fin de ligne\
+19    ' passage en G2\
+1A    ' signal d'erreur\
+1B XX ' escape\
+   23 XX YY \
+      20 YY ' validation attribut sur tout l'\'e9cran\
+      21 YY ' d\'e9validation   "     "  "    "     "\
+         YY    ' attribut\
+   28 XX ' jeu de caract\'e8re dans G0 (M2)\
+   29 XX ' jeu de caract\'e8re dans G1 (M2)\
+      42    ' am\'e9ricain\
+      52    ' fran\'e7ais\
+      33    ' m12\
+      30    ' vt100\
+   35 XX ' mise en route p\'e9riph\'e9rique\
+   36 XX ' arret p\'e9rip.\
+   37 XX ' attente perip.\
+      40    ' imprimante\
+      41    ' enregistreur\
+      42    ' mode roll up\
+      43    ' mode roll down\
+   39 XX ' protocole PRO1\
+      53    ' prise de ligne (M2)\
+      57    ' lib\'e9ration ligne (M2)\
+      5A    ' demande status num\'e9rotation (M2)\
+      67    ' deconnexion du modem\
+      68    ' connexion du modem\
+      6C    ' retournement du modem\
+      6D    ' retournement inverse\
+      6E    ' acquittement de retournement (demande ?)\
+      6F    ' passage en mode maitre\
+      70    ' demande status terminal\
+      72    ' demande status fonctionnement\
+      74    ' demande status vitesse\
+      76    ' demande status protocole\
+      78    ' t\'e9l\'e9chargement bloc 1\
+      79    ' t\'e9l\'e9chargement bloc 2\
+      7A    ' identification bloc 2\
+      7B    ' identification terminal\
+   3A XX YY ' protocole PRO2\
+              Codes r\'e9cepteur et \'e9metteur :\
+                 Module     Emission     R\'e9ception\
+                 Ecran         50           58\
+                 Clavier       51           59\
+                 Modem         52           5A\
+                 Prise p\'e9ri.   53           5B\
+                 T\'e9l\'e9phonie    54           5C\
+      5B YY ' r\'e9ponse demande status num\'e9rotation (M2)\
+         4D    ' en num\'e9rotation\
+         44    ' libre\
+      62 YY ' demande status d'un module\
+         YY    ' code r\'e9cepteur ou \'e9metteur\
+      64 YY ' diffusion restreinte des acq.\
+      65 YY ' diffusion syst\'e9matique des acq.\
+         YY    ' code r\'e9cepteur\
+      66 YY ' mise en transparence\
+         YY    ' nombre d'octet\
+      69 YY ' mise en route mode fonct. particulier\
+      6A YY ' arret mode fonct. particulier\
+         43    ' mode rouleau\
+         46    ' loupe haut\
+         47    ' loupe bas\
+      6B YY ' prog. vitesse p\'e9rip.\
+         52    ' 300 bauds\
+         64    ' 1200 bauds\
+         76    ' 4800 bauds\
+         7F    ' 9600 bauds\
+      6F 31 ' passage en mode esclave\
+      71 YY ' r\'e9ponse demande status terminal\
+         YY    ' octet de status\
+               b1 : parit\'e9\
+               b2 : 1\
+               b3 : 0\
+               b4 : fil PT sur prise p\'e9ri.\
+               b5 : d\'e9tectionn porteuse\
+               b6 : 0\
+               b7 : vitesse serveur-minitel\
+               b8 : \'e9tat terminal \'e0 la connexion\
+      73 YY ' r\'e9ponse demande status fonctionnement\
+         YY    ' octet de status\
+      75 YY ' r\'e9ponse demande status vitesse\
+         52    ' 300 bauds\
+         64    ' 1200 bauds\
+        76    ' 4800 bauds\
+         7F    ' 9600 bauds\
+      77 YY ' r\'e9ponse demande status protocole\
+         YY    ' octet de status\
+               b1 \'e0 b6 : inutilis\'e9\
+               b7 : 0 = acq. vers prise\
+               b8 : 0 = acq. vers modem\
+   3B XX YY ZZ ' protocole PRO3\
+      52 3X 3Y ' num\'e9rotation \'e0 l'\'e9cran\
+         3X 3Y    ' ??? Ex : 33 33\
+      60 YY ZZ ' arret d'aiguillage\
+      61 YY ZZ ' mise en route d'aiguillage\
+         YY ZZ    ' code r\'e9cepteur, code \'e9metteur\
+      63 YY ZZ ' r\'e9ponse demande status module\
+         YY ZZ    ' code r\'e9cepteur ou \'e9metteur, octet de status\
+                  b1 : parit\'e9\
+                  b2 : 1\
+                  b3 : 0\
+                  b4 : 0 (t\'e9l\'e9phonie ?)\
+                  b5 : prise p\'e9ri.\
+                  b6 : modem\
+                  b7 : clavier\
+                  b8 : \'e9cran\
+      69 5A 42    ' appel auto. (M2)\
+   40    ' car. noir\
+   41    ' car. rouge\
+   42    ' car. vert\
+   43    ' car. jaune\
+   44    ' car. bleu\
+   45    ' car. magenta (mauve)\
+   46    ' car. cyan (bleu clair)\
+   47    ' car. blanc\
+   48    ' clignotement\
+   49    ' fixe\
+   4A    ' fin incrustation\
+   4B    ' d\'e9but incrustation\
+   4C    ' taille normale\
+   4D    ' double hauteur\
+   4E    ' double largeur\
+   4F    ' double hauteur et double largeur\
+   50    ' fond noir\
+   51    ' fond rouge\
+   52    ' fond vert\
+   53    ' fond jaune\
+   54    ' fond bleu\
+   55    ' fond magenta\
+   56    ' fond cyan\
+   57    ' fond blanc\
+   58    ' masquage\
+   59    ' fin de lignage\
+   5A    ' d\'e9but de lignage\
+   5C    ' fond normal\
+   5D    ' inversion de fond\
+   5E    ' fond transparent\
+   5F    ' d\'e9masquage\
+   61    ' demande de position\
+1E    ' home\
+1F XX YY ' positionnement curseur ou r\'e9ponse \'e0 une demande de\
+           position\
+   XX    ' ligne + 40\
+   YY    ' colonne + 40\
+20 \'e0 7F    ' caract\'e8re imprimable\
+\
+Remarques utiles :\
+* Couleurs de la plus claire \'e0 la plus fonc\'e9e :\
+  blanc, jaune, cyan, vert, magenta, rouge, bleu, noir\
+* Taille et fond inverse indisponible en semi-graphique.\
+* Lignage en semi-graphique = mosaique disjointe\
+* Validation d'un attribut de lignage ou de masquage ou une\
+  couleur de fond : car. semi-graphique ou un espace\
+* Protocoles 78 \'e0 7B impossible depuis la prise p\'e9ri-inf.\
+\pard\pardeftab708\partightenfactor0
+
+\f1\b0 \cf0 \
+}

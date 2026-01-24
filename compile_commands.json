@@ -1,0 +1,22 @@
+[
+  {
+    "file": "src/main.cpp",
+    "arguments": [
+      "c++",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c++17",
+      "-g",
+      "-O0",
+      "-I/opt/homebrew/include",
+      "-Iinc/",
+      "-c",
+      "src/main.cpp",
+      "-o",
+      ".objs/main.o"
+    ],
+    "directory": "/Users/ilia/Documents/minitel",
+    "output": ".objs/main.o"
+  }
+]
