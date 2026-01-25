@@ -1,0 +1,147 @@
+* Codage des modules (en emission et en reception):
+
+  +---------+--------+--------+
+  ! Modules !   ce   !   cr   !
+  +---------+--------+--------+
+  ! ecran   ! 50 (P) ! 58 (X) !
+  ! clavier ! 51 (Q) ! 59 (Y) !
+  ! modem   ! 52 (R) ! 5A (Z) !
+  ! prise   ! 53 (S) ! 5B ([) !
+  ! poste   ! 54 (T) ! 5C (\) ! Minitel 10.
+  +---------+--------+--------+
+
+
+* Status aiguillage:
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  !  -  !Poste!Prise!Modem!Clav.!Ecran!
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	Pour chacun des modules: 1 = liaison etablie, 0 = liaison coupee.
+
+
+* Mode Fonctionnement:
+
+  +--------+-----------------------[mf]---------------------------------+
+  ! 43 (C) ! mode rouleau/page.						!
+  ! 44 (D) ! procedure de correction d'erreur (PCE).			!
+  ! 45 (E) ! mode enseignement (clavier en caracteres minuscules).	!
+  ! 46 (F) ! mode loupe haut. \ Minitels 1 et 10.			!
+  ! 47 (G) ! mode loupe bas.  /						!
+  +--------+--------[cr]--------+--------+----[cmd]-----+---------------+
+  ! 58 (X) ! module ecran.	! 41 (A) ! Veille.	! New Minitel 2.!
+  ! 59 (Y) ! module clavier.	! 41 (A) ! Mode etendu. ! Minitel 1B.	!
+  !        !                	! 43 (C) ! C0 (ou CSI). ! Minitel 1B.	!
+  ! 5A (Z) ! module modem.	! 41 (A) ! Gestion flux.! Minitel 12.	!
+  !        !                    ! 42 (B) ! Sign.ap.auto.! Minitel 12.	!
+  +--------+--------------------+--------+--------------+---------------+
+
+
+* Programmation/Status Vitesse (prise):
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  ! E2  ! E1  ! E0  ! R2  ! R1  ! R0  !
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	R: vitesse de reception sur 3 bits.
+	E: vitesse d'emission sur 3 bits.
+
+	001 =   75Bd (M1 Telic non retournable).
+	010 =  300Bd.
+	100 = 1200Bd.
+	110 = 4800Bd (M1B).
+        111 = 9600Bd (M2).
+
+
+* Status Terminal:
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  !  0  ! PT  ! DP  ! MT  ! VM  ! EC  !
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	EC: etat du terminal a la connexion (1 = etat oppose).
+	VM: vitesse modem (1 = 1200Bd ds le sens base de donnees vers terminal).
+	MT: module telephonique (1 = present). Minitels 10/10B/12/2.
+	DP: detection de porteuse (1 = connecte).
+	PT: etat du fil PT sur la prise (1 = session active).
+
+
+* Status Fonctionnement:
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  ! L1  ! L2  ! ME  ! PC  ! RL  !  F  !
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	F:  Format d'ecran (1 = 80 colonnes). Minitel 1B.
+	RL: Rouleau (1 = actif).
+	PC: PCE (1 = actif).
+	ME: Mode Enseignement (1 = actif).
+	L:  Postition de la loupe (2 bits). Minitels 1 et 10.
+		00: pas de loupe.
+		01: loupe haute.
+		10: loupe basse.
+
+
+* Status Protocole:
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  !  0  ! PAD ! A2  ! A1  ! D2  ! D1  !
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	D1:  0 si les acquittements sont diffuses vers le modem.
+	D2:  0 si les acquittements sont diffuses vers la prise.
+		Minitel 1B:
+	A1:  1 si le modem est en mode non retour d'acquittement.
+	A2:  1 si la prise est en mode non retour d'acquittement.
+	PAD: 1 si la compatibilite PAD-X3 est active.
+
+* Status Telephonique (Minitel 10):
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  !  0  ! FMEM! DCL ! Num.! Com.! RPL !
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	RPL:  etat du Relais Prise de Ligne (0 = ouvert).
+	Com.: etat du Combine (0 = raccroche).
+	Num.: Numerotation decimale ou multi-frequence (0 = decimale).
+	DCL:  Detection d'un Courant de Ligne dans le M.T (0 = absence).
+	FMEM: Fonction MEM (0 = inactive). Minitel 10.
+
+
+* Standard d'Impression (Minitel 1B):
+
+  +--------+-----------+
+  ! 6A (j) ! Francais  !
+  ! 6B (k) ! Americain !
+  +--------+-----------+
+
+
+* Status Clavier (Minitel 1B):
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  !  0  !  0  !  0  ! C0  !  0  !Eten.!
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	Eten.: mode etendu (1 = actif).
+	C0:    codage en jeu C0 des touches de gestion du curseur (1 = actif).
+
+
+* Status Modem (Minitel 12 et 2):
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  !  0  !  0  !  0  ! AA  ! FLUX! PCE !
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	PCE:  Procedure de Correction d'Erreur en emission (1 = active). M12.
+	FLUX: controle de flux sur la prise (1 = actif). Minitel 12.
+	AA:   Appel Automatique (1 = demande).
+
+
+* Status Ecran (New Minitel 2):
+
+  +-----+-----+-----+-----+-----+-----+-----+-----+
+  !  P  !  1  !  0  !  0  !  0  !  0  !  0  !VEIL.!
+  +----7+----6+----5+----4+----3+----2+----1+----0+
+
+	VEIL.: mise en/hors veille ecran (0 = veille active).
+

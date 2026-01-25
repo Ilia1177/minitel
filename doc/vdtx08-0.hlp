@@ -1,0 +1,65 @@
+* Commande du protocole (PRO1=ESC 39 (9), PRO2=ESC 3A (:), PRO3=ESC 3B (;)):
+
++----+--------------------+---------------------------------------------------+
+!    ! PRO1 50 (P)        ! Numerotation du dernier numero (BIS).	   M10!
+!    ! PRO3 51 (Q) 3x, 3y ! Numerotation a partir du repertoire.    M2 philips!
+!    ! PRO3 52 (R) 3x, 3y ! Numerotation a partir de l'ecran.		M2/M10!
+!    ! PRO1 53 (S)        ! Prise de ligne.				M2/M10!
+!    ! PRO1 54 (T)        ! Commutation donnees-phonie.			   M10!
+!    ! PRO2 55 (U) N      ! Commutation donnees-phonie pendant N fois 2sec.M10!
+!    ! PRO2 56 (V) N      ! Idem mais en mode oppose.			   M12!
+!    ! PRO1 57 (W)        ! Liberation de ligne.			M2/M10!
+!    ! PRO1 58 (X)        ! Coupure Calibree.				   M10!
+!    ! PRO1 59 (Y)        ! Effacement memoire tampon (14 derniers no tel.)M10!
+!    ! PRO1 5A (Z)        ! Demande de status telephonique.             M2/M10!
+!    ! PRO2 5B ([) st     ! Reponse a la demande status telephonique.	M2/M10!
+!    !      5C (\)        !                                                   !
+!    !      5D (])        !                                                   !
+!    !      5E (^)        !                                                   !
+!    !      5F (_)        !                                                   !
+!  1 ! PRO3 60 (') cr, ce ! Arret d'aiguillage (OFF).			      !
+! 1b.! PRO1 60 (')        ! Demande de bien vouloir activer la PCE.	   M12!
+!  2 ! PRO3 61 (a) cr, ce ! Aiguillage (ON).				      !
+! 2b.! PRO1 61 (a)        ! Demande de bien vouloir arreter la PCE.	   M12!
+!  3 ! PRO2 62 (b) cr/ce  ! Demande de status d'un module (TO).		      !
+! 3b.! PRO1 62 (b)        ! Passage en mode repondeur.			   M12!
+!  4 ! PRO3 63 (c) cr/ce,s! Reponse a une demande de status ou acquittement.  !
+! 4b.! PRO1 63 (c)        ! Inhibition reception STUTEL.		   M12!
+!  5 ! PRO2 64 (d) cr     ! Diffusion restreinte des acquittements protocole. !
+! 5b.! PRO2 64 (d) ce     ! Acquittement non renvoye.			   M1B!
+!  6 ! PRO2 65 (e) cr     ! Diffusion systematique des acquittements protocole!
+! 6b.! PRO2 65 (e) ce     ! Acquittement renvoye.			   M1B!
+!  7 ! PRO2 66 (f) x      ! Mise en transparence du protocole. (0<x<128)      !
+!  8 ! PRO1 67 (g)        ! Deconnexion physique du modem.		      !
+!  9 ! PRO1 68 (h)        ! Assure la connexion du modem.		      !
+! 10 ! PRO2 69 (i) mf     ! Mise en route d'une fnct particuliere du terminal.!
+!10b.! PRO3 69 (i) cr,cmd ! Idem pour un module.		    M2/M1B/M12!
+! 11 ! PRO2 6A (j) mf     ! Arret d'une fnct particuliere du terminal.	      !
+!11b.! PRO3 6A (j) cr,cmd ! Idem pour un module.		    M2/M1B/M12!
+! 12 ! PRO2 6B (k) pv     ! Programmation des vitesses par le peripherique.   !
+! 13 ! PRO1 6C (l)        ! Retournement du modem.			      !
+! 14 ! PRO1 6D (m)        ! Retournement inverse du modem.		      !
+! 15 ! PRO1 6E (n)        ! Acquittement de retournement.		      !
+! 16 ! PRO1 6F (o)        ! Retournement pour l'opposabilite.		      !
+! 17 ! PRO2 6F (o) 31 (1) ! Passage du mode oppose a esclave (OPPORE).	      !
+! 18 ! PRO1 70 (p)        ! Demande de status terminal.			      !
+! 19 ! PRO2 71 (q) st     ! Reponse a la demande status terminal.	      !
+! 20 ! PRO1 72 (r)        ! Demande de status fonctionnement.		      !
+!20b.! PRO2 72 (r) cr     ! Demande de status d'un module.	    M2/M1B/M12!
+! 21 ! PRO2 73 (s) sf     ! Reponse a la demande status fonctionnement.	      !
+!21b.! PRO3 73 (s) cr,sx  ! Reponse a la demande status du module.  M2/M1B/M12!
+! 22 ! PRO1 74 (t)        ! Demande de status vitesse.			      !
+! 23 ! PRO2 75 (u) sv     ! Reponse a la demande status vitesse.	      !
+! 24 ! PRO1 76 (v)        ! Demande de status protocole.		      !
+! 25 ! PRO2 77 (w) sp     ! Reponse a la demande status protocole.	      !
+! 26 ! PRO1 78 (x) 01  04 ! Telechargement RAM 1. (Chaine encadree par	    M1!
+! 27 ! PRO1 79 (y) 01  04 ! Telechargement RAM 2.   Ctrl-A et Ctrl-D).	    M1!
+! 28 ! PRO1 7A (z)        ! Lecture RAM 2.				    M1!
+! 29 ! PRO1 7B ({)        ! Lecture ROM (Identification du terminal).	      !
+! 30 ! PRO2 7C (|) si     ! Commande de copie d'ecran.			   M1B!
+! 31 ! PRO2 31 (1) 7D (}) ! Passage en Teleinformatique.		   M1B!
+! 32 ! PRO2 32 (2) 7D (}) ! Passage du mode Videotex a Mixte.		   M1B!
+! 33 ! PRO2 32 (2) 7E (~) ! Passage du mode Mixte a Videotex.		   M1B!
+! 34 ! PRO1 7F DEL        ! Reinitialisation en Videotex.		   M1B!
++----+--------------------+---------------------------------------------------+
+

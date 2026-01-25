@@ -1,0 +1,36 @@
+* Les codes US:
+
++--------+--------------------------------------------------------------+
+! 23 (#) ! Telechargement jeux DRCS (M2).				!
++--------+--------------------------------------------------------------+
+! 30 (0) ! Positionnement curseur en debut de ligne.			!
+! 31 (1) ! 	US 3X 3Y ==> ligne no XY (decimal).			!
+! 32 (2) ! Cette sequence ne doit PLUS etre utilisee!			!
++--------+--------------------------------------------------------------+
+! 3C (<) ! voir S.T.U.C.A.M.						!
++--------+--------------------------------------------------------------+
+! 3E (>) ! voir S.T.U.T.E.L.						!
++--------+--------------------------------------------------------------+
+! 40 (@) ! Positionnement curseur.					!
+!   a    !	US XX+64 YY+64 ==> ligne no XX, colonne no YY.		!
+! 58 (X) ! Est aussi utilise en 80 colonne pour l'acces a la ligne 0.	!
++--------+--------------------------------------------------------------+
+
+
+* Telechargement jeux DRCS (M2):
+
+ US 23 20 20 20 42 49 : en-tete de telechargement jeu G'0.
+ US 23 20 20 20 43 49 : en-tete de telechargement jeu G'1.
+ US 23 YY 30 <14o> 30 : telecharge les car. YY et suivants...
+ US XX YY             : sors du telechargement, sf acces ligne 0.
+
+
+* Element du S.T.U.T.E.L. utilisees par le Minitel 12:
+
+ US 3E 44 .. 0D : Etablissement d'association.
+ US 3E 50 32 0D : Acquittement T-Transfert positif.
+ US 3E 50 33 0D : Acquittement T-Transfert negatif.
+ US 3E 50 37 0D : Demande de repetition du message.
+ US 3E 54 2F L TLV message 0D : Transfert de donnees.
+ US 3E 39 0D : rupture d'association.
+

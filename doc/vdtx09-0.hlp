@@ -1,0 +1,64 @@
+* Clavier des M1/M10:
+
+  +---------------+Touche Seule+--TS+Touche-+
+  ! ENVOI	  ! SEP A (41) ! CR    (0D) ! Retour chariot.
+  ! RETOUR	  ! SEP B (42) ! SS2 B (42) ! Accent aigu.
+  ! REPETITION	  ! SEP C (43) ! SEP J (4A) ! Demande d'activation de la PCE.
+  ! GUIDE	  ! SEP D (44) ! SS2 H (48) ! Accent trema.
+  ! ANNULATION 	  ! SEP E (45) ! \     (5C) ! Anti-slash.
+  ! SOMMAIRE	  ! SEP F (46) ! SS2 C (43) ! Accent circonflexe.
+  ! CORRECTION	  ! SEP G (47) ! Prg.Vitesse! puis 1=75Bd, 2=300Bd, 4=1200Bd.
+  ! SUITE	  ! SEP H (48) ! SS2 A (41) ! Accent grave.
+  ! CONNEXION/FIN ! SEP I (49) ! SEP I (49) ! => prise.
+  ! LOUPE	  !  La loupe  ! Copie Ecran! puis 1=Francais, 2=Americain.
+  !               !            !Inhibe prise! puis 0 (flip-flop).
+  ! CC		  ! SEP a (61) !            !
+  ! HP+		  ! SEP b (62) !            !
+  ! HP-		  ! SEP c (63) !            !
+  ! BIS		  ! SEP d (64) ! SEP h (68) ! => prise.
+  ! RT puis no XX ! SEP e (65) !     -      !
+  !  ou mnemo.(6c)! compose no !     -      !
+  ! EC puis no XX ! compose no ! FF    (0C) ! Sort de MEM.
+  ! MEM		  ! Acces a MEM! SEP g (67) ! => prise.
+  +---------------+------------+------------+
+
+
+* Clavier des M1B/M10B:
+
+  +---------------+Touche Seule+--TS+Touche-+-Ctrl+Touche+
+  ! ENVOI	  ! SEP A (41) ! }     (7D) !            !
+  ! RETOUR	  ! SEP B (42) ! SS2 B (42) ! SS2 j (6A) ! OE
+  ! REPETITION	  ! SEP C (43) ! {     (7B) ! SS2 z (7A) ! oe
+  ! GUIDE	  ! SEP D (44) ! SS2 H (48) !            !
+  ! ANNULATION 	  ! SEP E (45) ! \     (5C) ! SS2 # (23) ! Livre.
+  ! SOMMAIRE	  ! SEP F (46) ! SS2 C (43) !            !
+  ! CORRECTION	  ! SEP G (47) ! SS2 ' (27) ! SS2 K (4B) ! c cedille.
+  ! SUITE	  ! SEP H (48) ! SS2 A (41) ! SS2 { (7B) ! Beta.
+  ! CONNEXION/FIN ! SEP I (49) ! SEP I (49) !   -Break-  !
+  ! CC		  ! SEP a (61) !            +------------+
+  ! HP+		  ! SEP b (62) !            !
+  ! HP-		  ! SEP c (63) !            !
+  ! BIS		  ! SEP d (64) ! SEP h (68) !
+  ! RT puis no XX ! SEP e (65) !     -      !
+  !  ou mnemo.(6c)! compose no !     -      !
+  ! EC puis no XX ! compose no !            !
+  ! MEM		  !            ! SEP g (67) !
+  +---------------+------------+------------+
+
+  +---------------------------+--[ CSI ]---------------+-[ C 0 ]-+
+  ! Fleche haut (^)	      ! CSI A (41)             ! VT (0B) !
+  ! Fleche bas (v) 	      ! CSI B (42)             ! LF (0A) !
+  ! Fleche gauche (<-)	      ! CSI D (44)             ! BS (08) !
+  ! Fleche droite (->)	      ! CSI C (43)             ! HT (09) !
+  ! Retour chariot (<-')      !                CR (0D) ! CR (0D) !
+  +---------------------------+------------------------+---------+
+  ! TS+Fleche haut (^)        ! CSI M (4D)             !	 !
+  ! TS+Fleche bas (v)         ! CSI L (4C)             !	 !
+  ! TS+Fleche gauche (<-)     ! CSI P (50)             !	 !
+  ! TS+Fleche droite (->)     ! CSI 4 (34) h/l (68/6C) !	 !
+  ! TS+Retour Chariot (<-')   ! CSI H (48)             ! RS (1E) !
+  +---------------------------+------------------------+---------+
+  ! Ctrl+Fleche gauche (<-)   !                DEL(7F) ! DEL(7F) !
+  ! Ctrl+Retour Chariot (<-') ! CSI 2 (32) J (4A)      ! FF (0C) !
+  +---------------------------+------------------------+---------+
+

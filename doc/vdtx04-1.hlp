@@ -1,0 +1,38 @@
+* Codes Adressage:
+
+  +--------+----------------------------------------------------+
+  ! 20 ( ) ! Ecran videotex.					!
+  ! 21 (!) ! Imprimante.					!
+  ! 22 (") ! Lecteur de cassettes.				!
+  ! 23 (#) ! Lecteur de cartes.					!
+  ! 24 ($) ! Numeroteur.					!
+  ! 25 (%) ! Interdit (indique le sous-adressage).		!
+  ! 26 (&) ! Videodisque.					!
+  ! 27 (') ! Calculateur domestique ou personnel.		!
+  ! 28 (() ! Clavier auxiliaire.				!
+  ! 29 ()) ! Adaptateur pour handicapes.			!
+  ! 2A (*) ! Coffret d'adaptation videotex pour reseau RV1G.	!
+  ! 2B (+) ! Lecteur de codes barre.				!
+  ! 2C (,) ! Reserve pour extensions.				!
+  ! 2D (-) ! Peripherique en bout de chaine.			!
+  ! 2E (.) ! Base de donnee distante.				!
+  ! 2F (/) ! Tous les peripheriques.				!
+  +--------+----------------------------------------------------+
+
+  +----------------------+--------------------------------------+
+  ! 20 ( ) 2C (,) 21 (!) ! Messagerie 40.			!
+  ! 21 ( ) 2C (,) 26 (&) ! Imprimante ...			!
+  +----------------------+--------------------------------------+
+
+* Parametres pour CDG:
+
+  +--------+--------------------------------------------+
+  ! 20 ( ) ! Deconnexion de service par le serveur.	!
+  ! 21 (!) ! Deconnexion de service par l'usager.	!
+  ! 22 (") ! Deconnexion sur incident TRANSPAC.		!
+  ! 2F (/) ! Defaillance application.			!
+  +--------+--------------------------------------------+
+
+
+* Codage des C0 en transparence: DLE suivit du C0 ayant le bit 6 force a 1.
+

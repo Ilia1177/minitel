@@ -1,0 +1,63 @@
+* Format des ROMs et RAMs:
+
+  +-------------+--------------------------------------+-------------+
+  ! 01 (Ctrl-A) ! ...contenu de la ROM ou de la RAM... ! 04 (Ctrl-D) !
+  +-------------+--------------------------------------+-------------+
+
+  Rq.: Le Ctrl-A et le Ctrl-D sont toujours present pour la ROM. Pour la RAM,
+	le Ctrl-D peut etre absent si celle-ci est completement remplie. Si,
+	par contre le Ctrl-A est absent: la RAM ne repondra plus JAMAIS rien!
+
+
+* Contenu de la ROM:
+
+	+--------------+-----------------+---------+
+	! Constructeur ! Type de minitel ! Version !
+	+--------------+-----------------+---------+
+
+* Constructeur:
+
+  +--------+----------------------------------------------------+
+  ! 41 (A) ! Matra (M5 uniquement).				!
+  ! 42 (B) ! TRT (M1), RTIC (M1B), RPIC (M2), Philips (M12).	!
+  ! 43 (C) ! Telic-Alcatel (M1/M1C/M10/M10B/M12).		!
+  ! 44 (D) ! Thomson.						!
+  ! 45 (E) ! CCS.						!
+  ! 46 (F) ! Fiet.						!
+  ! 47 (G) ! Fime.						!
+  ! 48 (H) ! Unitel.						!
+  ! 49 (I) ! Option.						!
+  ! 4A (J) ! Bull.						!
+  ! 4B (K) ! Telematique.					!
+  ! 4C (L) ! Desmet.						!
+  +--------+----------------------------------------------------+
+
+* Type de minitel (ou de peripherique):
+
+  +--------+------------------------------------------------------------------+
+  ! 62 (b) ! Minitel 1, modem non retournable et clavier ABCD.		      !
+  ! 63 (c) ! Minitel 1, modem non retournable.				      !
+  ! 64 (d) ! Minitel 10, modem non retournable.				      !
+  ! 65 (e) ! Minitel 1 Couleur, modem non retournable, entree video et incrus.!
+  ! 66 (f) ! Minitel 10.						      !
+  ! 67 (g) ! Emulateur.							      !
+  +--------+------------------------------------------------------------------+
+  ! 6A (j) ! Imprimante.						      !
+  +--------+------------------------------------------------------------------+
+  ! 72 (r) ! Minitel 1.							      !
+  ! 73 (s) ! Minitel 1 Couleur.						      !
+  ! 74 (t) ! Terminatel 252.						      !
+  ! 75 (u) ! Minitel 1 Bi-standard.	=> Pas de RAMs.			      !
+  ! 76 (v) ! Minitel 2.			=> Demi-RAM 1 en R/O.		      !
+  ! 77 (w) ! Minitel 10 Bi-standard.					      !
+  ! 78 (x) ! (Thomson?)							      !
+  ! 79 (y) ! Minitel 5.							      !
+  ! 7A (z) ! Minitel 12.		=> RAM 1 en R/O.		      !
+  +--------+------------------------------------------------------------------+
+
+* Version:
+
+	+--------+--------+-----+-----+------+------+------+------+
+	! Parite ! PAD-X3 !  1  !  1  ! No de version sur 4 bits! !
+	+-------7+-------6+----5+----4+-----3+-----2+-----1+-----0+
+

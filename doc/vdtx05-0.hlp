@@ -1,0 +1,60 @@
+* Sequences escapes:
+
++--------------------------+--------------------------------------------------+
+! ESC 23 (#) 20 ( ) 58 (X) ! Masquage plein ecran.			      !
+! ESC 23 (#) 20 ( ) 5F (_) ! Demasquage plein ecran.			      !
+! ESC 23 (#) 21 (!) XX     ! Filtre. Attributs pleine rangee. (3F<XX<60).     !
++--------------------------+--------------------------------------------------+
+! ESC 25 (%)               ! Transparence ecran.			      !
+! ESC 25 (%) 40 (@)        ! Fin transparence ecran (M1B).  (Don't use it!).  !
++--------------------------+--------------------------------------------------+
+! ESC 28 (() 40 (@)        ! G0: Base alphanumerique (M2).		      !
+! ESC 28 (() 20 ( ) 42 (B) ! G'0: jeu DRCS alphanumerique (M2).		      !
+! ESC 29 ()) 63 (c)        ! G1: Base semi-graphique (M2).		      !
+! ESC 29 ()) 20 ( ) 43 (C) ! G'1: jeu DRCS semi-graphique (M2).		      !
++--------------------------+--------------------------------------------------+
+! ESC 2X     YY            ! Fin transparence ecran (M1) 8<=X<=F & 30<=YY<=7F.!
+! ESC 2F (/) 3F (?)        ! Fin transparence ecran (M1B).  (Use this one!).  !
++--------------------------+--------------------------------------------------+
+! ESC 35 (5) da            ! Filtre. (Mise en route			      !
+! ESC 36 (6) da            ! Filtre. (Arret	  d'un dispositif auxiliaire).!
+! ESC 37 (7) da            ! Filtre. (Mise en attente			      !
++--------------------------+--------------------------------------------------+
+! ESC 39 (9) XX            ! Commandes protocole a un argument (PRO1).	      !
+! ESC 3A (:) XX XX         ! Commandes protocole a deux arguments (PRO2).     !
+! ESC 3B (;) XX XX XX      ! Commandes protocole a trois arguments (PRO3).    !
++------------+-------------+--[ C 1 ]--+------------+-------------------------+
+! ESC 40 (@) ! Caractere noir.	       ! ESC 50 (P) ! Fond noir.	      !
+! ESC 41 (A) ! Caractere rouge.	       ! ESC 51 (Q) ! Fond rouge.	      !
+! ESC 42 (B) ! Caractere vert.	       ! ESC 52 (R) ! Fond vert.	      !
+! ESC 43 (C) ! Caractere jaune.	       ! ESC 53 (S) ! Fond jaune.	      !
+! ESC 44 (D) ! Caractere bleu.	       ! ESC 54 (T) ! Fond bleu.	      !
+! ESC 45 (E) ! Caractere magenta.      ! ESC 55 (U) ! Fond magenta.	      !
+! ESC 46 (F) ! Caractere cyan.	       ! ESC 56 (V) ! Fond cyan.	      !
+! ESC 47 (G) ! Caractere blanc.	       ! ESC 57 (W) ! Fond blanc.	      !
+! ESC 48 (H) ! Clignotement.           ! ESC 58 (X) ! Masquage.		      !
+! ESC 49 (I) ! Fixe.          	       ! ESC 59 (Y) ! Fin de lignage.	      !
+! ESC 4A (J) ! Fin d'incrustation.     ! ESC 5A (Z) ! Debut de lignage.       !
+! ESC 4B (K) ! Debut d'incrustation.   ! ESC 5B ([) ! CSI ou ISO 6429 (M1B).  !
+! ESC 4C (L) ! Taille normale.	       ! ESC 5C (\) ! Fond normal.	      !
+! ESC 4D (M) ! Double hauteur.	       ! ESC 5D (]) ! Inversion de fond.      !
+! ESC 4E (N) ! Double largeur.	       ! ESC 5E (^) ! Filtre(Fond transparent)!
+! ESC 4F (O) ! Double grandeur.	       ! ESC 5F (_) ! Demasquage.	      !
++------------+-------------+-----------+------------+-------------------------+
+! ESC 61 (a)               ! Demande de position curseur (rep.: US l+64 c+64).!
++--------------------------+--------------------------------------------------+
+
+
+* Dispositifs Auxiliaires:
+
++--------+------------------------------+ (d'apres Doc. de Mai 1980):
+! 40 (@) ! Recopie d'ecran.		! ESC 35 40: recopie d'ecran des M1B.
+! 41 (A) ! Dispositif d'enregistrement.	!
+! 42 (B) ! Roll Up.			!
+! 43 (C) ! Roll Down.			!
++--------+------------------------------+ (d'apres S.T.U.P.A.V.):
+! 4D (M) ! Invitation A Numeroter (IAN).! ESC 35 4D: codage officiel de l'IAN.
+! 4E (N) !				!
+! 4F (O) ! ?				! ESC 36 4F: pr les besoins internes de
++--------+------------------------------+ l'administration.
+

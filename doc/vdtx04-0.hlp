@@ -1,0 +1,58 @@
+* Commandes ISO 2022 utilisees par le PAVI (commande 30):
+
+  	1B 20 2X 30 : Invitation A Numeroter (IAN). X=no du groupe de taxation.
+  	1B 21 2X 2Y 30 : XY=representation dec. du niveau de taxation utilise.
+  	1B 22 30 : indication d'echec de connexion.
+
+
+* Commandes ISO 2022 utilisees par la messagerie 40 colonnes (commande 31):
+
+	1B 20 20 31 : Debut de message.
+	1B 20 21 31 : Debut du champ expediteur.
+	1B 20 22 31 : Debut du champ nom.
+	1B 20 23 31 : Debut du champ numero de telephone.
+	1B 20 24 31 : Debut du champ destinataire.
+	1B 20 25 31 : Debut du champ objet.
+	1B 20 26 31 : Debut du champ corps.
+	1B 21 20 31 : Fin de message ou de champs.
+
+
+* Commandes ISO 2022 utilisees en mode compatible PAD-X3 (commandes 34 a 37):
+
+	En mode compatible PAD-X3 toutes les sequences de types SEP XY
+deviennent: ESC 2Y 3X 0D (sauf pour Y=5 qui devient F).
+
+Exemples: SEP 41 devient: ESC 21 34 (touche ENVOI).
+	  SEP 53 devient: ESC 23 35 (acquittement).
+	  SEP 65 devient: ESC 2F 36 (touche du Minitel10).
+	  SEP 70 devient: ESC 20 37 (acquittement).
+
+
+* Commandes ISO 2022 utilisees par le reseau minitel (commandes 38 a 3C):
+
+  +--------------------------+------------------------------------------------+
+  ! ESC        A 38 (8) [CR] ! Demande de Connexion (DC).		      !
+  ! ESC 2F (/)   38 (8) [CR] ! Demande d'IDentification (DID).		      !
+  ! ESC        A 39 (9)  CR  ! Acquittement de Connexion (AC).		      !
+  ! ESC        A 3A (:) [CR] ! Indication de Liberation de Connexion (ILC).   !
+  ! ESC 2F (/)   3A (:) [CR] ! ILC Generale.				      !
+  ! ESC        A 3B (;)      ! Jeton (J).				      !
+  ! ESC 2F (/)   3B (;)      ! Demande de Liberation de Connexion (DLC).      !
+  ! ESC 20 ( ) p 3C (<) [CR] ! Demande de Modif. des Caracteristique de Trans.!
+  ! ESC 21 (!)   3C (<) [CR] ! Debut de Transparence (DT).		\DMCT.!
+  ! ESC 22 (") P 3C (<) [CR] ! Commande de Deconnexion Generale (CDG).	      !
+  ! ESC 23 (#) A 3C (<) [CR] ! Indication de Ressource Disponible (IRD).      !
+  ! ESC 24 ($) A 3C (<) [CR] ! Indication de Ressource Non-Disponible (IRND). !
+  ! ESC 28 (()   3C (<) [CR] ! Fin de Transparence (FT).		      !
+  +--------------------------+------------------------------------------------+
+
+
+* Commande du systeme d'echange utilises par les Minitels 1B:
+
+	1B 21 38 : Demande d'identification d'une imprimante.
+	1B 21 2D 38 : Demande d'id. d'une imprimante et du bout de chaine.
+	1B 2D 21 2C 26 38 : idem pour Minitel 12 et 2.
+	1B 2D 3A : Indication de Liberation de Connexion du bout de chaine.
+	1B 21 3A : Indication de Liberation de Connexion d'une imprimante.
+	1B 2F 3B : Demande de Liberation de Connexion.
+

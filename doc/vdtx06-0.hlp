@@ -1,0 +1,44 @@
+* Minitel 1B.
+* ANSI X3.64 escape sequences:
+
++-----+-------------------------+---------------+-----------------------------+
+! CUU ! CUrsor Up.		! CSI Pn A	!			      !
+! CUD ! CUrsor Down.		! CSI Pn B	!			      !
+! CUF ! CUrsor Forward.		! CSI Pn C	!			      !
+! CUB ! CUrsor Backward.	! CSI Pn D	!			      !
+! CUP ! CUrsor Position.	! CSI Pr ; Pc H !			      !
+! ED  ! Erase in Display.	! CSI Ps J	! 0=fin, 1=debut, 2=entier.   !
+! EL  ! Erase in Line.		! CSI Ps K	! 0=fin, 1=debut, 2=entier.   !
+! ICH ! Insert CHaracter.	! CSI Pn @	! (M1B Rtic).		      !
+! IL  ! Insert Line.		! CSI Pn L	!			      !
+! DL  ! Delete Line.		! CSI Pn M	!			      !
+! DCH ! Delete CHaracter.	! CSI Pn P	!			      !
+! SM4 ! Select Mode 4.		! CSI  4 h	!     Insertion/Replacement   !
+! RM4 ! Reset Mode 4.		! CSI  4 l	!	   Mode (IRM).	      !
+! DSR ! Device Status Report.	! CSI  6 n	! renvoi:CSI Pl ; Pc R  M12/M2!
++-----+-------------------------+---------------+-----------------------------+
+
+* 80 colonnes uniquement:
+
++-----+-------------------------+---------------+-----------------------------+
+! IND ! INDex.			! ESC D		! >LF.			      !
+! NEL ! NExt Line.		! ESC E		! >CR/LF.		      !
+! RI  ! Reverse Index.		! ESC M		! >VT.			      !
+! RIS ! Reset to Initial State. ! ESC c		!			      !
+! SM  ! Select Mode.		! CSI <1 h	! curseur on (private). M12/M2!
+! RM  ! Reset Mode.		! CSI <1 l	! curseur off (private).M12/M2!
+! SM2 ! Select Mode 2.		! CSI  2 h	!	Keyboard Action       !
+! RM2 ! Reset Mode 2.		! CSI  2 l	!	  Mode (KAM).	      !
+! SM  ! Select Mode.		! CSI <3 h	! 40 colonnes (private).M12/M2!
+! RM  ! Reset Mode.		! CSI ?3 l	! 80 colonnes (private).M12/M2!
+! SM  ! Select Mode.		! CSI <4 h	! mode page (private).  M12/M2!
+! RM  ! Reset Mode.		! CSI ?4 l	!mode rouleau (private).M12/M2!
+! SM12! Select Mode 12.		! CSI 12 h	!	Send / Receive  M12/M2!
+! RM12! Receive Mode 12.	! CSI 12 l	!	  Mode (SRM).   M12/M2!
+! MC  ! Media Copy.		! CSI    i	!			      !
+! SGR ! Set Graphic Rendition.	! CSI Ps m	!	0=aucun attributs.    !
++-----+-------------------------+---------------+-----------------------------+
+! 1: sur-intensite.   4: souligne.   5: clignotement.   7: inversion de fond. !
+!22: intensite normale. 24: non souligne. 25: non clignotant. 27: fond normal.!
++-----------------------------------------------------------------------------+
+

@@ -1,0 +1,52 @@
+* Clavier des M1B/M10B (suite):
+
+  +---+-Ctrl+Touche+---+-Ctrl+Touche+---+-Ctrl+Touche+
+  ! 1 ! {     (7B) ! 2 ! |     (7C) ! 3 ! }     (7D) !
+  ! 4 ! ~     (7E) ! 5 ! `     (60) ! 6 ! _     (5F) !
+  ! 7 ! SS2 8 (38) ! 8 ! SS2 , (2C) ! 9 ! SS2 . (2E) !
+  ! * ! SS2 0 (30) ! 0 ! SS2 1 (31) ! # ! SS2 / (2F) !
+  +---+------------+---+------------+---+------------+
+  
+  +---+Ctrl+Tche+---+Ctrl+Tche+---+Ctrl+Tche+---+Ctrl+Tche+
+  ! , ! FS (1C) ! . ! RS (1E) ! ' ! NUL (0) ! ; ! VT (0B) !
+  ! - ! GS (1D) ! : ! LF (0A) ! ? ! US (1F) !   !         !
+  +---+---------+---+---------+---+---------+---+---------+
+
+
+* En mode compatible PAD-X3:
+
+  +---------------+-------------------------------+
+  ! ENVOI         ! ESC 21 (!) 34 (4) 0D (Ctrl-M) ! Sequences ISO 2022...
+  ! RETOUR        ! ESC 22 (") 34 (4) 0D (Ctrl-M) !
+  ! REPETITION    ! ESC 23 (#) 34 (4) 0D (Ctrl-M) !
+  ! GUIDE         ! ESC 24 ($) 34 (4) 0D (Ctrl-M) !
+  ! ANNULATION    ! ESC 2F (/) 34 (4) 0D (Ctrl-M) ! ESC 25=Transparence ecran!
+  ! SOMMAIRE      ! ESC 26 (&) 34 (4) 0D (Ctrl-M) !
+  ! CORRECTION    ! ESC 27 (') 34 (4) 0D (Ctrl-M) !
+  ! SUITE         ! ESC 28 (() 34 (4) 0D (Ctrl-M) !
+  ! CONNEXION/FIN ! ESC 29 ()) 34 (4) 0D (Ctrl-M) ! Idem avec TS.
+  +---------------+-------------------------------+
+
+
+* En mode teleinformatique:
+
+  +------------+-------------------+-------+ +--------+-------------------+---+
+  ! ENVOI      ! ESC 4F (O) 4D (M) ! ENTER ! ! Fnct 0 ! ESC 4F (O) 70 (p) ! 0 !
+  +------------+-------------------+-------+ ! Fnct 1 ! ESC 4F (O) 71 (q) ! 1 !
+  ! SOMMAIRE   ! ESC 4F (O) 50 (P) !  PF1  ! ! Fnct 2 ! ESC 4F (O) 72 (r) ! 2 !
+  ! ANNULATION ! ESC 4F (O) 51 (Q) !  PF2  ! ! Fnct 3 ! ESC 4F (O) 73 (s) ! 3 !
+  ! RETOUR     ! ESC 4F (O) 52 (R) !  PF3  ! ! Fnct 4 ! ESC 4F (O) 74 (t) ! 4 !
+  ! REPETITION ! ESC 4F (O) 53 (S) !  PF4  ! ! Fnct 5 ! ESC 4F (O) 75 (u) ! 5 !
+  +------------+-------------------+-------+ ! Fnct 6 ! ESC 4F (O) 76 (v) ! 6 !
+  ! CORRECTION ! ESC 4F (O) 6C (l) !   ,   ! ! Fnct 7 ! ESC 4F (O) 77 (w) ! 7 !
+  ! GUIDE      ! ESC 4F (O) 6D (m) !   -   ! ! Fnct 8 ! ESC 4F (O) 78 (x) ! 8 !
+  ! SUITE      ! ESC 4F (O) 6E (n) !   .   ! ! Fnct 9 ! ESC 4F (O) 79 (y) ! 9 !
+  +------------+-------------------+-------+ +--------+-------------------+---+
+  
+  +------------+-+TS(US)+--+TS-(Francais)-----+---+Ctrl-(Francais)---+
+  ! ENVOI      ! } (7D) ! e accent grave (7D) !           -          !
+  ! REPETITION ! { (7B) ! e accent aigu  (7B) !           -          !
+  ! GUIDE      !    -   ! guillemet   (22/7E) !           -          !
+  ! ANNULATION ! \ (5C) ! c cedille      (5C) ! livre sterligne (23) !
+  ! CORRECTION !    -   ! paragraphe     (5D) ! c cedille       (5C) !
+  +------------+--------+---------------------+----------------------+

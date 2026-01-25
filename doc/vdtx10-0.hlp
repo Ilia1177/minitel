@@ -1,0 +1,31 @@
+* Prise peri-informatique:
+
+  +---+----+--------------------------------------------+
+  ! 1 ! RX ! Reception de donnees par le terminal.	!
+  ! 2 ! GND! Masse.					!
+  ! 3 ! TX ! Transmission de donnees par le terminal.	!
+  ! 4 ! PT ! Peripherique en transmission.		!
+  ! 5 ! TP ! Terminal Pret.			      M1!
+  ! 5 !    ! Sortie alimentation 8.5 volt - 1 A.     M1B!
+  +---+----+--------------------------------------------+
+
+
+* Ligne 0 des M1/M10:
+
+           1         2         3         4
+  1234567890123456789012345678901234567890
+  APPEL                              IR X
+
+	Minitel 1: X = F ou C (fixe/clignotant).
+	Minitel 10: message Appel (IAI), prise Inhibee (I), Recopie d'ecran (R).
+
+
+* Ligne 0 des M1B/M10B:
+
+           1         2         3         4
+  1234567890123456789012345678901234567890
+  APPEL                               IRX
+
+	X = F/f/C (fixe/clignotant).
+	message Appel (IAI), prise Inhibee (I), Recopie d'ecran (R).
+

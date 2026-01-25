@@ -1,0 +1,35 @@
+* non-ANSI X3.64 escape sequences :
+
++-------------------+-------------------------------------------+
+! BEL (Ctrl-G)      ! Buzzer (Bip).				!
+! BS (Ctrl-H)       ! Curseur gauche (<-).			!
+! TAB (Ctrl-I)      ! Tabulation.				!
+! LF (Ctrl-J)       ! Curseur bas (V).				!
+! VT (Ctrl-K)       ! Curseur bas (V).				!
+! FF (Ctrl-L)       ! Curseur bas (V).				!
+! CR (Ctrl-M)       ! Retour chariot (<-').			!
+! SO (Ctrl-N)       ! Passage au jeu G1 (francais).		!
+! SI (Ctrl-O)       ! Passage au jeu G0 (americain).		!
+! CAN (Ctrl-X)      ! Pave blanc (DEL).				!
+! EOF (Ctrl-Z)      ! Pave blanc (DEL).				!
+! ESC (Ctrl-[)      ! Introduit une sequence escape.		!
+! US  40 (@) Pc     ! Acces a la ligne 0, colonne Pc (0<Pc<64).	!
++-------------------+-------------------------------------------+
+! ESC 28 (() 42 (B) ! G0 = jeu americain.		     M12!
+! ESC 28 (() 52 (R) ! G0 = jeu francais.		     M12!
+! ESC 28 (() 33 (3) ! G0 = jeu complementaire.		     M12!
+! ESC 28 (() 30 (0) ! G0 = jeu DEC.			      M2!
+! ESC 29 ()) 42 (B) ! G1 = jeu americain.		     M12!
+! ESC 29 ()) 52 (R) ! G1 = jeu francais.		     M12!
+! ESC 29 ()) 33 (3) ! G1 = jeu complementaire.		     M12!
+! ESC 29 ()) 30 (0) ! G1 = jeu DEC.			      M2!
++-------------------+-------------------------------------------+
+! ESC 37 (7)	    ! Memorisation du contexte ecran.		!
+! ESC 38 (8)	    ! Restitution du contexte ecran.		!
++-------------------+-------------------------------------------+
+! ESC 4F (O) XX     ! Codage des touches de fonctions...	!
++-------------------+-------------------------------------------+
+! CSI 3F (?) 7A (z) ! Acquittement de passage en teleinfo.	!
+! CSI 3F (?) 7B ({) ! Retour au standard Teletel mode Videotex.	!
++-------------------+-------------------------------------------+
+

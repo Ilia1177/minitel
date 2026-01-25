@@ -1,0 +1,60 @@
+* Liste des separateurs (SEP = 13 (Ctrl-S)):
+
++------------+----------------------------------------------------------------+
+! SEP 11 XON ! Demande de reprise du flux.				   M12!
+! SEP 15 NACK! Demande d'arret du flux.					   M12!
++------------+----------------------------------------------------------------+
+! SEP 41 (A) ! Touche ENVOI.						      !
+! SEP 42 (B) ! Touche REPETITION.					      !
+! SEP 43 (C) ! Touche RETOUR.						      !
+! SEP 44 (D) ! Touche GUIDE.						      !
+! SEP 45 (E) ! Touche ANNULATION.					      !
+! SEP 46 (F) ! Touche SOMMAIRE.						      !
+! SEP 47 (G) ! Touche CORRECTION.					      !
+! SEP 48 (H) ! Touche SUITE.						      !
+! SEP 49 (I) ! Touche CONNEXION-FIN.					      !
+! SEP 4A (J) ! Demande de mise en marche de la PCE. (TS+REPETITION sur M1/M10)!
+! SEP 4B (K) ! Demande d'arret de la PCE.				      !
+! SEP 4C (L) ! Demande de retournement du modem (1200-75Bd).		      !
+! SEP 4D (M) ! Demande de retournement inverse (75-1200Bd).		      !
+! SEP 4E (N) !								      !
+! SEP 4F (O) !								      !
+! SEP 50 (P) ! Changement d'etat a la connexion.			      !
+! SEP 51 (Q) ! Changement de la vitesse du modem.			      !
+! SEP 52 (R) !	(Connexion ou deconnexion d'un module telephonique.)	      !
+! SEP 53 (S) ! Connexion ou deconnexion du modem.			      !
+! SEP 54 (T) ! Changement d'etat du fil PT.				      !
+! SEP 55 (U) !	(Connexion ou deconnexion de modules logiciels sup.)	      !
+! SEP 56 (V) ! Changement d'etat du status mode de fonctionnement.	      !
+! SEP 57 (W) ! Acquittement de la mise en transparence.			      !
+! SEP 58 (X) ! Debut et fin de retournement.				      !
+! SEP 59 (Y) ! Phase de connexion-deconnexion.				      !
+! SEP 5A (Z) ! Changement d'etat de la fonction MEM.		uniquement M10!
+! SEP 5B ([) ! Changement d'etat du courant de ligne.			   M10!
+! SEP 5C (\) ! Debut et fin de recopie d'ecran.				   M1B!
+! SEP 5D (]) !								      !
+! SEP 5E (^) ! Reset.							   M1B!
+! SEP 5F (_) !								      !
+! SEP 60 (') !								      !
+! SEP 61 (a) ! Touche CC (Coupure Calibree).				   M10!
+! SEP 62 (b) ! Touche HP+.						   M10!
+! SEP 63 (c) ! Touche HP-.						   M10!
+! SEP 64 (d) ! Touche BIS.						   M10!
+! SEP 65 (e) ! Touche RT (Repertoire).					   M10!
+! SEP 66 (f) !								      !
+! SEP 67 (g) ! Touche Speciale + MEM.					   M10!
+! SEP 68 (h) ! Touche Speciale + BIS.					   M10!
+! SEP 69 (i) !								      !
+! SEP 6A (j) !								      !
+! SEP 6B (k) !								      !
+! SEP 6C (l) ! Detecteur de sonnerie integre.				M12/M2!
+! SEP 6D (m) ! Acquittement status modem.				   M12!
+! SEP 6E (n) !								      !
+! SEP 6F (o) !								      !
+! SEP 70 (p) ! Passage au mode Mixte.					   M1B!
+! SEP 71 (q) ! Passage au mode Videotex.				   M1B!
+! SEP 72 (r) ! Changement d'etat de la veille.				M12/M2!
+! SEP 73 (s) !								      !
+! SEP 74 (t) ! Inhibition de la reception STUTEL.			   M12!
++------------+----------------------------------------------------------------+
+

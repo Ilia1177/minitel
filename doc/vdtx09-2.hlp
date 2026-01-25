@@ -1,0 +1,43 @@
+* Configuration du terminal grace a la touche Fnct (fonction):
+
+  +-----------------------------------------------------+---------------+-----+
+  ! Modem, procedure de Correction d'erreur (PCE)	! Fnct M puis C ! F-F !
+  ! Modem, Retourne.					! Fnct M puis R !     !
+  ! Prise, Inhibe/non inhibe.				! Fnct P puis I ! F-F !
+  ! Prise,  300Bds.					! Fnct P puis 3 !     !
+  ! Prise, 1200Bds.					! Fnct P puis 1 !     !
+  ! Prise, 4800Bds.					! Fnct P puis 4 !     !
+  ! Prise, 9600Bds.				     M2	! Fnct P puis 9 !     !
+  ! Terminal, Echo/pas d'echo.				! Fnct T puis E ! F-F !
+  ! Terminal, Videotex.					! Fnct T puis V !     !
+  ! Terminal, teleinformatique Americain.		! Fnct T puis A !     !
+  ! Terminal, teleinformatique Francais.		! Fnct T puis F !     !
+  ! Terminal, PAD-X3 On.				! Fnct T puis / !     !
+  ! Terminal, PAD-X3 Off.			    M10B! Fnct T puis * !     !
+  ! Terminal, Initialisation (apres mise s/tension). M2 ! Fnct T puis I !     !
+  ! Impression, jeu Americain.				! Fnct I puis A !     !
+  ! Impression, jeu Francais.				! Fnct I puis F !     !
+  ! Clavier, C0/CSI.					! Fnct C puis C ! F-F !
+  ! Clavier, Etendu (+ ESC, Ctrl, <-, ->, ^, V).	! Fnct C puis E !     !
+  ! Clavier, Videotex (- ESC, Ctrl, <-, ->, ^, V).	! Fnct C puis V !     !
+  ! Clavier, Majuscule/minuscule.			! Fnct C puis M ! F-F !
+  ! Ecran, Format 40 ou 80 colonnes.			! Fnct E puis F ! F-F !
+  ! Ecran, Rouleau.					! Fnct E puis R !     !
+  ! Ecran, Page.					! Fnct E puis P !     !
+  ! Ecran, mise en Marche de la veille des 3 h.  New M2 ! Fnct E puis M !     !
+  ! Ecran, Arret de la veille des trois heures.  New M2 ! Fnct E puis A !     !
+  +---------------------------[ M12 ]-------------------+---------------+-----+
+  ! Relance de l'execution d'un logon en cours d'exec.  ! Fnct S	      !
+  ! Arret d'apprentissage.				! Fnct F	      !
+  ! Reinitialisation d'apprentissage.			! Fnct Repetition     !
+  ! Suspension d'execution d'un acces automatique.	! Fnct :	      !
+  ! Programmation d'une pause lors de l'apprentissage.	! Fnct -	      !
+  ! Activation de la connexion du Repondeur.		! Fnct R puis Envoi   !
+  ! Envoi d'un message prepare.				! Fnct Envoi puis No  !
+  +---------------------------[ M 2 ]-------------------+---------------------+
+  ! Acces a MEM.					! Fnct Sommaire   F-F !
+  ! Recopie d'ecran dans le jeu courant.		! Fnct Guide	      !
+  ! Augmentation du volume du haut-parleur (HP+).	! Fnct Correction     !
+  ! Diminution du volume du haut-parleur (HP-).		! Fnct Annulation     !
+  +-----------------------------------------------------+---------------------+
+
