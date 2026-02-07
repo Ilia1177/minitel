@@ -2,6 +2,17 @@
 #include <unistd.h>
 #include <fstream>
 
+void Minitel::hazardous_collective(const std::string& input) {
+	if (!input.empty()) {
+		state_ = State::MENU;
+		return ;
+	}
+	else
+	{
+		send(CLEAR);
+		send("Welcome to hazardous\r\nPRESS ANY KEY TO CONTINUE\r\n");
+	}
+}
 
 void Minitel::cadavre_exquis(const std::string& input)
 {
@@ -24,24 +35,15 @@ void Minitel::cadavre_exquis(const std::string& input)
 	clear_screen();
 	send(WHITE_BCKG);
 	send(BLACK_CHAR);
-	// write(serial_port_, WHITE_BCKG, 2);
-	// write(serial_port_, BLACK_CHAR, 2);
 	send(" Continue the story !            \r\n");
 	send(WHITE_BCKG);
 	send(BLACK_CHAR);
-	// write(serial_port_, WHITE_BCKG, 2);
-	// write(serial_port_, BLACK_CHAR, 2);
 	send(" Press RETOUR to go back to menu.\r\n");
 	send(WHITE_BCKG);
 	send(BLACK_CHAR);
-	// write(serial_port_, WHITE_BCKG, 2);
-	// write(serial_port_, BLACK_CHAR, 2);
 	send(" This is the las story line:     \r\n");
 	send(BLACK_BCKG);
 	send(WHITE_CHAR);
-	// write(serial_port_, BLACK_BCKG, 2);
-	// write(serial_port_, WHITE_CHAR, 2);
-
 	std::string storyEnd;
     if (story_.length() <= 40) {
         storyEnd = story_;
@@ -60,8 +62,10 @@ void Minitel::forty_two(const std::string& input) {
 		state_ = State::MENU;
 		return;
 	}
-	fsend("Creativity lays on the heart of everyone.\
-			The tools are limitless, but speechless.\
-			Create your own, and search for your innovation.", WHITE_BCKG, BLACK_CHAR);
-	
+	send(WHITE_BCKG);
+	send(BLACK_CHAR);
+	send(" Creativity lays on the heart of everyone.\r\n");
+	send(" Tools are limitless, but speechless.\r\n");
+	send(" Create your own, and search for your innovation.\r\n");;
+	send(" PRESS ANY KEY TO GO BACK TO MENU\r\n");
 }

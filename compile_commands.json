@@ -1,6 +1,6 @@
 [
   {
-    "file": "src/main.cpp",
+    "file": "src/Minitel.cpp",
     "arguments": [
       "c++",
       "-Wall",
@@ -12,11 +12,11 @@
       "-I/opt/homebrew/include",
       "-Iinc/",
       "-c",
-      "src/main.cpp",
+      "src/Minitel.cpp",
       "-o",
-      ".objs/main.o"
+      ".objs/Minitel.o"
     ],
     "directory": "/Users/ilia/Documents/minitel",
-    "output": ".objs/main.o"
+    "output": ".objs/Minitel.o"
   }
 ]

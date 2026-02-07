@@ -25,6 +25,19 @@ Minitel::~Minitel(void) {
 	}
 }
 
+std::string Minitel::get_state() {
+	std::string str;
+	if (state_ == State::MENU) {
+		str = "MENU\n";
+	} else if (state_ == State::HAZARDOUS) {
+		str=  "HAZARDOUS\n";
+	} else if (state_ == State::STORY) {
+		str = "STORY\n";
+	} else if (state_ == State::FORTY2) {
+		str = "FORTY2\n";
+	}
+	return str;
+}
 int Minitel::init(int ac, char** av) {
 	if (ac > 1) {
 		if (std::string(av[1]) == "-d") {
@@ -375,7 +388,7 @@ void Minitel::png_to_mosaique(const char* filename) {
             write(serial_port_, &c, 1);
 			usleep(1000);
         }
-		write(serial_port_, "\r", 1);  // ← IMPORTANT
+		// write(serial_port_, "\r\n", 1);  // ← IMPORTANT
     	usleep(20000);
     }
 

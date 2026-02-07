@@ -37,13 +37,17 @@ int main(int ac, char** av)
 		"15. blink off",
 		"16. roll mode",
 		"17. red chars",
+		"18. send ascii art (80 cols)",
 	};
 
+	std::ifstream file("ascii/ascii_art.txt");
+	std::stringstream buffer;
+	buffer << file.rdbuf();
 	// m.read();
 	std::string line;
 	while(!g_interrupt) {
-		m.fsend("SPECIAL SERVER MENU", CLEAR, BLINK_ON, MAGENTA_BCKG);
-		m.fsend("\r\n", BLINK_OFF);
+		// m.fsend("SPECIAL SERVER MENU", CLEAR, BLINK_ON, MAGENTA_BCKG);
+		// m.fsend("\r\n", BLINK_OFF);
 		switch(m.dial_menu(menu)) {
 			case 1: m.clear_screen(); break;
 			case 2: user_line("write: ", line); m.send(line); break;
@@ -51,7 +55,7 @@ int main(int ac, char** av)
 			case 4: m.mosaique_mode(); break;
 			case 5: m.ascii_mode(); break;
 			case 6: m.display_ascii_table(); break;
-			case 7: m.png_to_mosaique("image.png"); break;
+			case 7: m.png_to_mosaique("ascii/img.png"); break;
 			case 8: m.cursor_at(10, 1); break;
 			case 9: m.cursor_on(); break;
 			case 10: m.cursor_off(); break;
@@ -62,6 +66,7 @@ int main(int ac, char** av)
 			case 15: m.blink_off(); break; 
 			case 16: m.roll_mode(); break; 
 			case 17: m.test_char(); break; 
+			case 18: m.send(buffer.str());
 			default:
 				break;
 		}

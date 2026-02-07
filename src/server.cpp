@@ -6,11 +6,12 @@
 
 void Minitel::exec_choice(const std::string& rawCommand) {
 	std::string cmd = rawCommand;
-	// trim(cmd);
+	// trim(cmd);<LeftMouse>
 	// display_menu();
 	std::cout << "Execute: " << cmd << "\n";
 	if (cmd == "1" || cmd == "hazardous") {
 		state_ = State::HAZARDOUS;
+		hazardous_collective("");
 	} else if (cmd == "2" || cmd == "story") {
 		state_ = State::STORY;
 		cadavre_exquis("");
@@ -18,7 +19,6 @@ void Minitel::exec_choice(const std::string& rawCommand) {
 		state_ = State::FORTY2;
 		forty_two("");
 	} else {
-		clear_line();
 		send("invalid choice !! Try again: ");
 	}
 }
@@ -26,13 +26,13 @@ void Minitel::exec_choice(const std::string& rawCommand) {
 void Minitel::handle_input() {
 	size_t pos;
 	if ((pos = buffer_.find("\r")) != std::string::npos) {
-		std::cout << "Handle input\n";
-		clear_line();
+		// clear_line();
 		std::string input = buffer_.substr(0, pos);
+		std::cout << "Handle input = buffer -> : " << buffer_  << " input: " << input << "\n";
 		buffer_.erase(0, pos + 1);
 		switch(state_) {
 			case State::MENU: exec_choice(input); break;
-			case State::HAZARDOUS: /*	hazardous_collective(input); */break;
+			case State::HAZARDOUS: hazardous_collective(input); break;
 			case State::STORY: 	cadavre_exquis(input); break;
 			case State::FORTY2: forty_two(input); break;
 			default: return;
@@ -52,12 +52,11 @@ void Minitel::display_menu()
 {
 	std::cout << "Display menu\n";
 	clear_screen();
-	png_to_mosaique("image.png");
+	png_to_mosaique("ascii/img.png");
 	std::vector<std::string> menu = {
 			"       1. Hazardous Collective         ", 
 			"       2. Tell me a story              ", 
 			"       3. about 42                     " };
-
 
 	for (size_t i = 0; i < menu.size(); i++) {
 		send(BLACK_CHAR);
@@ -94,7 +93,11 @@ void Minitel::listen()
             break;
         } else if (ret == 0) {
 			time = (time + 1) % 4;
-			eraseLines(1);
+			eraseLines(2);
+			if (debugMode_) {
+				std::cout << "DEBUG MODE: ";
+				std::cout << "STATUS: " << get_state() + " " ;
+			}
 			std::cout << "Listening" << std::string(time, '.') << '\n';
 			continue;
 		}

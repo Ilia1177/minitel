@@ -102,12 +102,14 @@ class Minitel
 		void test_char();
 		void flush();
 		void display_menu();
+		void hazardous_collective(const std::string& input);
 		void cadavre_exquis(const std::string& input);
 		void handle_input();
 		void exec_choice(const std::string& cmd);
 		void beep();
 		int configure_serial(const char* port);
 
+		std::string get_state();
 		void forty_two(const std::string& input);
 		void fsend(const std::string& line, const std::string& cmd1 = "", const std::string& cmd2 = "", const std::string& cmd3 = "");
 
