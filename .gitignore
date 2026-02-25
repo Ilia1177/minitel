@@ -3,3 +3,5 @@
 .objs
 *.txt
 !ascii/*
+DS_Store
+minitel

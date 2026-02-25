@@ -1,5 +1,65 @@
 [
   {
+    "file": "src/main.cpp",
+    "arguments": [
+      "c++",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c++17",
+      "-g",
+      "-O0",
+      "-I/opt/homebrew/include",
+      "-Iinc/",
+      "-c",
+      "src/main.cpp",
+      "-o",
+      ".objs/main.o"
+    ],
+    "directory": "/Users/ilia/Documents/minitel",
+    "output": ".objs/main.o"
+  },
+  {
+    "file": "src/server.cpp",
+    "arguments": [
+      "c++",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c++17",
+      "-g",
+      "-O0",
+      "-I/opt/homebrew/include",
+      "-Iinc/",
+      "-c",
+      "src/server.cpp",
+      "-o",
+      ".objs/server.o"
+    ],
+    "directory": "/Users/ilia/Documents/minitel",
+    "output": ".objs/server.o"
+  },
+  {
+    "file": "src/story.cpp",
+    "arguments": [
+      "c++",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c++17",
+      "-g",
+      "-O0",
+      "-I/opt/homebrew/include",
+      "-Iinc/",
+      "-c",
+      "src/story.cpp",
+      "-o",
+      ".objs/story.o"
+    ],
+    "directory": "/Users/ilia/Documents/minitel",
+    "output": ".objs/story.o"
+  },
+  {
     "file": "src/Minitel.cpp",
     "arguments": [
       "c++",
@@ -18,5 +78,25 @@
     ],
     "directory": "/Users/ilia/Documents/minitel",
     "output": ".objs/Minitel.o"
+  },
+  {
+    "file": "src/tools.cpp",
+    "arguments": [
+      "c++",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c++17",
+      "-g",
+      "-O0",
+      "-I/opt/homebrew/include",
+      "-Iinc/",
+      "-c",
+      "src/tools.cpp",
+      "-o",
+      ".objs/tools.o"
+    ],
+    "directory": "/Users/ilia/Documents/minitel",
+    "output": ".objs/tools.o"
   }
 ]

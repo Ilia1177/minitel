@@ -9,152 +9,185 @@
 #include <cstdio>
 #include <cstring>
 #include <sys/ioctl.h>
+// #include "videotex-cmd.hpp"
 
 #include <IOKit/usb/IOUSBLib.h>
 #include <IOKit/IOCFPlugIn.h>
 
 
 Minitel::Minitel(void): 
-	serial_port_(-1), mode_(VIDEOTEX), state_(State::MENU), buffer_(""), story_(""), debugMode_(false) {}
+	_paper(BLACK_BCKG),
+	_ink(WHITE_CHAR),
+	_margin(1),
+	_cursorX(1),
+	_cursorY(1),
+	_rindex(0),
+	_serial_port(-1),
+	_mode(VIDEOTEX),
+	_state(State::MENU),
+	_rbuff(""),
+	_buffer(""),
+	_story(""),
+	_debugMode(false) {}
 
 Minitel::~Minitel(void) {
 	this->close();
-	if (storyBook_.is_open()) {
-		storyBook_.close();
+	if (_storyBook.is_open()) {
+		_storyBook.close();
 		std::cout << "Close story book.\n";
 	}
 }
 
 std::string Minitel::get_state() {
 	std::string str;
-	if (state_ == State::MENU) {
-		str = "MENU\n";
-	} else if (state_ == State::HAZARDOUS) {
-		str=  "HAZARDOUS\n";
-	} else if (state_ == State::STORY) {
-		str = "STORY\n";
-	} else if (state_ == State::FORTY2) {
-		str = "FORTY2\n";
+	if (_state == State::MENU) {
+		str = "MENU";
+	} else if (_state == State::HAZARDOUS) {
+		str=  "HAZARDOUS";
+	} else if (_state == State::STORY) {
+		str = "STORY";
+	} else if (_state == State::FORTY2) {
+		str = "FORTY2";
+	} else if (_state == State::EMAIL) {
+		str = "EMAIL";
 	}
 	return str;
 }
+
 int Minitel::init(int ac, char** av) {
-	if (ac > 1) {
-		if (std::string(av[1]) == "-d") {
-			debugMode_ = true;
-		}
+
+	if (ac > 2 && std::string(av[2]) == "-d") {
+		_debugMode = true;
+	} else if (ac < 2) {
+		std::cerr << "Please provide a socket.\n";
+		return 1;
 	}
-	std::cout << "Opening story book.\n";
-	storyBook_.open("cadavre.txt");
-	if (!storyBook_.is_open()) {
-		std::cerr << "Error opening story book.\n";
+
+	if (configure_serial(av[1]) < 0) {
 		return -1;
 	}
+
+	send(INIT);
+	std::cout << "Minitel initialized with sequence: " << INIT << "\n";
 	return 0;
 }
 
+int Minitel::changeSpeed(int bauds) {  // Voir p.141
+  // Fonction modifiée par iodeo sur GitHub en octobre 2021
+  // Format de la commande
+  // send(PRO)
+  send(PRO2);  // 0x1B 0x3A
+  writeByte(0x6B);   // 0x6B
+  switch (bauds) {
+    case  300 : writeByte(0x52); break;  // 0x52
+    // case  300 : writeByte(0b1010010); break;  // 0x52
+    case 1200 : writeByte(0x64); break;  // 0x64
+    // case 1200 : writeByte(0b1100100); break;  // 0x64
+    case 4800 : writeByte(0x76); break;  // 0x76
+    // case 4800 : writeByte(0b1110110); break;  // 0x76
+    case 9600 : writeByte(0x7F); break;  // 0x7F (pour le Minitel 2 seulement)
+    // case 9600 : writeByte(0b1111111); break;  // 0x7F (pour le Minitel 2 seulement)
+  }
+  return 1;
+}
+
 int Minitel::configure_serial(const char* port) {
-    serial_port_ = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
-    if (serial_port_ == -1) {
+	// NONBLOCK because of poll (taht allready block for incoming data)
+    _serial_port = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if (_serial_port == -1) {
         perror("Erreur ouverture port");
         return -1;
     }
-    
+	tcgetattr(_serial_port, &original_termios_);
+
+    tcflush(_serial_port, TCIOFLUSH);  // Flush both input and output
     // Remove O_NONBLOCK after opening
-    int flags = fcntl(serial_port_, F_GETFL, 0);
-    fcntl(serial_port_, F_SETFL, flags & ~O_NONBLOCK);
+    // int flags = fcntl(serial_port_, F_GETFL, 0);
+    // fcntl(serial_port_, F_SETFL, flags & ~O_NONBLOCK);
     
     // Flush any existing data BEFORE configuring
-    tcflush(serial_port_, TCIOFLUSH);
+    tcflush(_serial_port, TCIOFLUSH);
     
     // Get current settings and clear them completely
     struct termios options;
-    tcgetattr(serial_port_, &options);  // Get current first
+	if (tcgetattr(_serial_port, &options) != 0) {
+        perror("tcgetattr");
+        return -1;
+    }
     
     // Clear all flags to start fresh
     cfmakeraw(&options);  // Sets up raw mode cleanly
-    
+    cfsetospeed(&options, B1200);   // Output speed ← ADD THIS!
     // Set baud rate
     cfsetispeed(&options, B1200);
-    cfsetospeed(&options, B1200);
-    
+    // CS8, no parity - macOS compatible
+	options.c_cflag &= ~CSIZE;    // Clear size bits
+	options.c_cflag |= CS8;       // 8 bits (macOS compatible)
+	options.c_cflag &= ~PARENB;   // No hardware parity
+	options.c_cflag &= ~PARODD;   // (just in case)
+	options.c_cflag &= ~CSTOPB;   // 1 stop bit
+	options.c_cflag &= ~CRTSCTS;  // No flow control
+	options.c_cflag |= CREAD;     // Enable receiver
+	options.c_cflag |= CLOCAL;    // Ignore modem lines
+
+	options.c_iflag  = 0;         // No input processing
+	options.c_oflag  = 0;         // No output processing
+	options.c_lflag  = 0;         // Raw mode
+
+	options.c_cc[VMIN]  = 0;
+	options.c_cc[VTIME] = 0;
     // 7E1 configuration
-    options.c_cflag = CS7 | CLOCAL | CREAD | PARENB;  // Build from scratch
-    options.c_cflag &= ~(PARODD | CSTOPB | CRTSCTS);
-    
-    // Input flags
-    options.c_iflag = INPCK;  // Enable parity checking
-    options.c_iflag &= ~(IXON | IXOFF | IXANY | ICRNL | INLCR | IGNCR | IGNBRK | BRKINT | PARMRK | ISTRIP);
-    
-    // Output flags - completely raw
-    options.c_oflag = 0;
-    
-    // Local flags - completely raw
-    options.c_lflag = 0;
-    
-    // Control characters
-    options.c_cc[VMIN]  = 0;
-    options.c_cc[VTIME] = 10;  // 1 second timeout
-    
+	// options.c_cflag &= ~CSIZE;   // ← Clear size bits
+	// options.c_cflag |= CS7;      // ← Then set CS7
+	// options.c_cflag |= PARENB;   // ← Then set parity
+	// options.c_cflag &= ~PARODD;  // ← Even parity
+	// options.c_cflag &= ~CSTOPB;  // ← 1 stop bit
+	// options.c_cflag &= ~CRTSCTS; // ← No flow control
+	// options.c_cflag |= CREAD;    // ← Enable receiver
+	// options.c_cflag |= CLOCAL;   // ← Ignore modem lines
+
     // Apply settings with TCSAFLUSH to discard data
-    tcsetattr(serial_port_, TCSAFLUSH, &options);
+    tcsetattr(_serial_port, TCSAFLUSH, &options);
     
     // Flush again after configuration
-    tcflush(serial_port_, TCIOFLUSH);
+    tcflush(_serial_port, TCIOFLUSH);
     
     // DTR/RTS control - toggle to reset Minitel state
     int status;
-    ioctl(serial_port_, TIOCMGET, &status);
+    ioctl(_serial_port, TIOCMGET, &status);
     status |= TIOCM_DTR | TIOCM_RTS;
-    ioctl(serial_port_, TIOCMSET, &status);
+    ioctl(_serial_port, TIOCMSET, &status);
     
     // Wait for Minitel to be ready
-    usleep(500000);  // 500ms - give more time
+    usleep(500000);  // 500ms
+
+	// STEP 3: Read and discard anything that arrived
+    char discard_buf[256];
+    int discarded = 0;
+    int n;
+    while ((n = ::read(_serial_port, discard_buf, sizeof(discard_buf))) > 0) {
+        discarded += n;
+        std::cout << "Discarding " << n << " startup bytes: ";
+        for (int i = 0; i < n; i++) {
+            printf("%02X ", (unsigned char)discard_buf[i]);
+        }
+        std::cout << "\n";
+        usleep(80000);  // Small delay between reads
+    }
+    std::cout << "Discarded " << discarded << " startup bytes total\n";
     
+	struct termios current;
+	tcgetattr(_serial_port, &current);
+
+	std::cout << "c_cflag: 0x" << std::hex << current.c_cflag << "\n";
+	std::cout << "CS7 set: " << ((current.c_cflag & CSIZE) == CS7) << "\n";
+	std::cout << "PARENB set: " << ((current.c_cflag & PARENB) != 0) << "\n";
+	std::cout << "PARODD set: " << ((current.c_cflag & PARODD) != 0) << "\n\n";
+	std::cout << "CS8 set: " << ((current.c_cflag & CSIZE) == CS8) << "\n";
+	std::cout << "PARENB: "  << ((current.c_cflag & PARENB) != 0) << "\n";
     return 1;
 }
 
-// int Minitel::configure_serial(const char* port) {
-//     serial_port_ = open(port, O_RDWR | O_NOCTTY);
-//     if (serial_port_ == -1) {
-//         perror("Erreur ouverture port");
-//         return -1;
-//     }
-//     tcflush(serial_port_, TCIOFLUSH);
-//     struct termios options;
-//     memset(&options, 0, sizeof(options));
-//
-//     // 1200 baud
-//     cfsetispeed(&options, B1200);
-//     cfsetospeed(&options, B1200);
-//
-//     // 7E1
-//     options.c_cflag |= CLOCAL | CREAD;
-//     options.c_cflag |= CS7;
-//     options.c_cflag |= PARENB;   // Even parity
-//     options.c_cflag &= ~PARODD;
-//     options.c_cflag &= ~CSTOPB;  // 1 stop bit
-//
-//     // No flow control
-//     options.c_iflag &= ~(IXON | IXOFF | IXANY);
-//     options.c_cflag &= ~CRTSCTS;
-//
-//     // Raw mode
-//     options.c_iflag &= ~(ICRNL | INLCR | IGNCR);
-//     options.c_lflag = 0;
-//     options.c_oflag = 0;
-//
-//     // Read timeout
-//     options.c_cc[VMIN]  = 0;
-//     options.c_cc[VTIME] = 1;  // 100 ms
-//
-//     tcsetattr(serial_port_, TCSANOW, &options);
-//     tcflush(serial_port_, TCIOFLUSH);
-//
-//     usleep(300000);
-//     return 1;
-// }
-//
 size_t Minitel::dial_menu(const std::vector<std::string>& menu)
 {
 	int margin = 4;
@@ -178,156 +211,6 @@ size_t Minitel::dial_menu(const std::vector<std::string>& menu)
 		}
 	};
 	return static_cast<size_t>(choice);
-}
-
-void Minitel::png_to_mosaique_dither(const char* filename) {
-    FILE* fp = fopen(filename, "rb");
-    if (!fp) return;
-    
-    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    png_infop info = png_create_info_struct(png);
-    png_init_io(png, fp);
-    png_read_info(png, info);
-    
-    int width  = png_get_image_width(png, info);
-    int height = png_get_image_height(png, info);
-    int color_type = png_get_color_type(png, info);
-    int bit_depth  = png_get_bit_depth(png, info);
-    
-    if (bit_depth == 16) png_set_strip_16(png);
-    if (color_type == PNG_COLOR_TYPE_RGB ||
-        color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-        png_set_rgb_to_gray_fixed(png, 1, -1, -1);
-    if (color_type & PNG_COLOR_MASK_ALPHA)
-        png_set_strip_alpha(png);
-    
-    png_read_update_info(png, info);
-    
-    // Use signed int for dithering error propagation
-    std::vector<int> image(width * height);
-    std::vector<png_bytep> rows(height);
-    std::vector<unsigned char> temp(width * height);
-    
-    for (int y = 0; y < height; y++)
-        rows[y] = &temp[y * width];
-    
-    png_read_image(png, rows.data());
-    fclose(fp);
-    png_destroy_read_struct(&png, &info, nullptr);
-    
-    // Convert to signed int for dithering
-    for (size_t i = 0; i < temp.size(); i++)
-        image[i] = temp[i];
-    
-    // Floyd-Steinberg dithering with clamping
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            int idx = y * width + x;
-            int old_pixel = std::max(0, std::min(255, image[idx]));
-            int new_pixel = (old_pixel < 128) ? 0 : 255;
-            image[idx] = new_pixel;
-            
-            int error = old_pixel - new_pixel;
-            
-            // Helper to add error with clamping
-            auto add_error = [&](int offset, int factor) {
-                int val = image[offset] + error * factor / 16;
-                image[offset] = std::max(0, std::min(255, val));
-            };
-            
-            // Distribute error to neighboring pixels
-            if (x + 1 < width)
-                add_error(idx + 1, 7);
-            if (y + 1 < height) {
-                if (x > 0)
-                    add_error(idx + width - 1, 3);
-                add_error(idx + width, 5);
-                if (x + 1 < width)
-                    add_error(idx + width + 1, 1);
-            }
-        }
-    }
-    
-	try {
-		// Enter mosaic mode
-		write(serial_port_, "\x0E", 1);
-		tcdrain(serial_port_);
-		usleep(50000);
-		
-		for (int y = 0; y + 2 < height; y += 3) {
-			for (int x = 0; x + 1 < width; x += 2) {
-				unsigned char bits = 0;
-				
-				auto pix = [&](int dx, int dy, int bit) {
-					int px = x + dx;
-					int py = y + dy;
-					if (px >= width || py >= height) return;  // Bounds check
-					int val = image[py * width + px];
-					if (val < 128)
-						bits |= (1 << bit);
-				};
-				
-				pix(0, 0, 0);
-				pix(1, 0, 1);
-				pix(0, 1, 2);
-				pix(1, 1, 3);
-				pix(0, 2, 4);
-				pix(1, 2, 5);
-				
-				unsigned char c = 0x20 + bits;
-				write(serial_port_, &c, 1);
-				usleep(2000);  // Increased delay
-			}
-			write(serial_port_, "\r", 1);  // Add newline
-			usleep(30000);  // Increased delay between rows
-		}
-	} catch (std::exception& e) {
-		std::cout << "Error: " << e.what() << "\n";	
-    }
-    tcdrain(serial_port_);
-    write(serial_port_, "\x0F", 1);  // Exit mosaic
-    tcdrain(serial_port_);
-    usleep(50000);
-
-    // Back to alphanumeric
-    cursor_at(13, 1);
-}
-
-void Minitel::recovery() {
-    std::cerr << "Starting Minitel recovery...\n";
-    
-    // 1. Flush all buffers (kernel side)
-    tcflush(serial_port_, TCIOFLUSH);
-    usleep(100000);
-    
-    // 2. Send break signal (low-level reset)
-    tcsendbreak(serial_port_, 0);
-    usleep(200000);
-    
-    // 3. Reconfigure serial port
-    struct termios tty;
-    tcgetattr(serial_port_, &tty);
-    cfsetospeed(&tty, B4800);
-    cfsetispeed(&tty, B4800);
-    tcsetattr(serial_port_, TCSANOW, &tty);
-    
-    // 4. Send escape sequences
-    const char* recovery_cmds[] = {
-        "\x18",          // CAN - Cancel current operation
-        "\x0F",          // SI - Exit mosaic mode
-        "\x11",          // DC1 - Exit attributes
-        "\x0C",          // FF - Clear screen
-        "\x1B\x3A\x69\x45",  // Protocol reset
-        "\x1E"           // RS - Home cursor
-    };
-    
-    for (const char* cmd : recovery_cmds) {
-        write(serial_port_, cmd, strlen(cmd));
-        tcdrain(serial_port_);
-        usleep(100000);
-    }
-    
-    std::cerr << "Recovery complete\n";
 }
 
 void Minitel::png_to_mosaique(const char* filename) {
@@ -365,8 +248,7 @@ void Minitel::png_to_mosaique(const char* filename) {
     png_destroy_read_struct(&png, &info, nullptr);
 
     // Enter mosaic mode
-    write(serial_port_, "\x0E", 1);
-
+    send(SO);
     for (int y = 0; y + 2 < height; y += 3) {
         for (int x = 0; x + 1 < width; x += 2) {
 
@@ -385,188 +267,174 @@ void Minitel::png_to_mosaique(const char* filename) {
             pix(1, 2, 5);
 
             unsigned char c = 0x20 + bits;
-            write(serial_port_, &c, 1);
-			usleep(1000);
+            send(std::string(1, c));
         }
-		// write(serial_port_, "\r\n", 1);  // ← IMPORTANT
-    	usleep(20000);
     }
 
-	tcdrain(serial_port_);
-    write(serial_port_, "\x0F", 1);
+	tcdrain(_serial_port);
+    send(SI);
+
+	    // Calculate final cursor position
+    int chars_wide = width / 2;
+    int chars_tall = height / 3;
+    
+    // Update tracked position
+    _cursorX = _cursorX + chars_wide;  // Moved right by image width
+    _cursorY = _cursorY + chars_tall;  // Moved down by image height
+    
+    // Handle line overflow
+    if (_cursorX > 40) {
+        _cursorY += _cursorX / 40;
+        _cursorX = _cursorY % 40;
+    }
 }
 
-void Minitel::cursor_at(int row, int col) {
-	if (row > ROWS_VIDEOTEX || row <= 0)
+void Minitel::cursor_to(int col, int row)
+{
+	if (row > ROWS_VIDEOTEX + 1 || row < 0)
 		return;
-	if (col > COLS_VIDEOTEX || col <= 0)
+	if (col > COLS_VIDEOTEX || col < 0)
 		return;
 
+	if (row == 0) { 
+		cursor_to(col, 1);
+		send(CUR_UP);
+		return;
+	} else if (row == ROWS_VIDEOTEX + 1) {
+		cursor_to(col, ROWS_VIDEOTEX);
+		send(CUR_DOWN);
+	}
     char cmd[3];
 
 	cmd[0] = 0x1F;
 	cmd[1] = (char)(row + 0x40);
 	cmd[2] = (char)(col + 0x40);
 
-	write(serial_port_, cmd, 3);
-	tcdrain(serial_port_);
+	_cursorX = col;
+	_cursorY = row;
+	writeByte(cmd[0]);
+	writeByte(cmd[1]);
+	writeByte(cmd[2]);
+	tcdrain(_serial_port);
 }
 
-void Minitel::bell() {
-    write(serial_port_, "\x07", 1);
-	tcdrain(serial_port_);
-}
 
-void Minitel::clear_line() {
-	unsigned char c = 0x18;
-	write(serial_port_, &c, 1);
-	tcdrain(serial_port_);
-}
+// void Minitel::clear_line() {
+// 	unsigned char c = 0x18;
+// 	write(serial_port_, &c, 1);
+// 	tcdrain(serial_port_);
+// }
 
-void Minitel::roll_mode() {
-	char cmd[3];
 
-	cmd[0] = 0x1B;
-	cmd[1] = 0x6A;
-	cmd[2] = 0x43;
 
-	write(serial_port_, &cmd, 3);
-	tcdrain(serial_port_);
-}
 
-void Minitel::mosaique_mode() {
-    write(serial_port_, "\x0E", 1);
-	tcdrain(serial_port_);
-}
-
-void Minitel::ascii_mode() {
-    write(serial_port_, "\x0F", 1);
-}
-
-void Minitel::g2_mode() {
-    write(serial_port_, "\x19", 1);
-}
-
-void Minitel::blink_on() {
-	write(serial_port_, "\x1B\x48", 2);
-}
-
-void Minitel::blink_off() {
-	write(serial_port_, "\x1B\x49", 2);
-}
-
-void Minitel::test_char() {
-	std::string str = " Hazardous color test\r\n";
-
-	char characters[2];
-	characters[0] = 0x1B;
-	characters[1] = 0x40;
-
-	char background[2];
-	background[0] = 0x1B;
-	background[1] = 0x50;
-
-	for (int i = 0; i < 8; i++) {
-		write(serial_port_, characters, 2);
-		tcdrain(serial_port_);
-		usleep(10000);  // Wait for command to process
-		for (int j = 0; j < 8; j++) {
-			write(serial_port_, background, 2);
-			tcdrain(serial_port_);
-			usleep(10000);  // Wait for command to process
-			send(str);
-			background[1] = background[1] + 1;
-		}
-		send("\r\n");
-		characters[1] = characters[1] + 1;
+void Minitel::send_file(const std::string &path) {
+	std::ifstream ifile(path);
+	if (!ifile.is_open()) {
+		std::cerr << "Error opening story.txt\n";
+		return;
 	}
+	std::string line;
+	cursor_to(1, _cursorY++);
+	while(std::getline(ifile, line)) {
+		write_text(line);
+	}
+	cursor_to(1, _cursorY++);
+	ifile.close();
 }
 
-void Minitel::display_ascii_table() {
-    for (int i = 0x20; i <= 0x7F; i++) {   // Minitel mosaic range
-        unsigned char c = i;
-        write(serial_port_, &c, 1);
-        // New line every 8 characters
-        if ((i - 0x20 + 1) % 8 == 0) {
-            write(serial_port_, "\r\n", 2);
-        }
+//
+void Minitel::writeByte(unsigned char b) {
+    // Calculate even parity for lower 7 bits
+    bool parity = __builtin_parity(b & 0x7F);
+
+    // Set parity bit (bit 7)
+    if (parity) {
+        b |= 0x80;
+    } else {
+        b &= 0x7F;
     }
-    // Ensure we end in alphanumeric mode
+
+    ssize_t written = ::write(_serial_port, &b, 1);
+	if (written != 1) {
+		std::cerr << "Write failed! errno: " << errno 
+				  << " (" << strerror(errno) << ")\n";
+		// Handle error - maybe reconnect?
+		return;
+	}
+		    // CRITICAL: Wait for data to actually be transmitted
+    if (tcdrain(_serial_port) != 0) {
+        std::cerr << "tcdrain failed! errno: " << errno 
+                  << " (" << strerror(errno) << ")\n";
+        // TX has stopped!
+    }
 }
 
-void Minitel::cursor_on() {
-	unsigned char c = 0x11;
-	write(serial_port_, &c, 1);
-}
-
-void Minitel::cursor_off() {
-	unsigned char c = 0x14;
-	write(serial_port_, &c, 1);
-}
+// void Minitel::wait_for_minitel_ready() {
+//     std::cout << "\n=== MINITEL STARTUP CHECK ===\n";
+//     std::cout << "Watch the UART adapter LEDs:\n";
+//     std::cout << "- RX LED flashing? Minitel is still booting...\n";
+//     std::cout << "- RX LED off? Minitel is ready!\n\n";
+//
+//     char buf[256];
+//     bool detected_traffic = false;
+//     int quiet_count = 0;
+//
+//     while (quiet_count < 20) {  // 2 seconds of silence = ready
+//         usleep(100000);
+//
+//         int n = ::read(serial_port_, buf, sizeof(buf));
+//         if (n > 0) {
+//             detected_traffic = true;
+//             quiet_count = 0;
+//             std::cout << "⚠ RX active - Minitel sending " << n << " bytes\n";
+//         } else {
+//             quiet_count++;
+//             if (quiet_count % 5 == 0 && detected_traffic) {
+//                 std::cout << "✓ RX quiet for " << (quiet_count * 100) << "ms...\n";
+//             }
+//         }
+//     }
+//
+//     if (detected_traffic) {
+//         std::cout << "✓ Minitel startup sequence complete!\n";
+//     } else {
+//         std::cout << "⚠ No startup data detected (Minitel may have been already on)\n";
+//     }
+//
+//     tcflush(serial_port_, TCIOFLUSH);
+//     std::cout << "=== READY TO SEND ===\n\n";
+// }
 
 void Minitel::send(const std::string& text) {
 	if (text.empty())
 		return;
-    write(serial_port_, text.c_str(), text.length());
-    usleep(300000); // Petit délai pour ne pas surcharger
-}
+	const size_t CHUNK_SIZE = 32;  // Send in small chunks
+	
+	for (size_t pos = 0; pos < text.length(); pos += CHUNK_SIZE) {
+        size_t chunk_len = std::min(CHUNK_SIZE, text.length() - pos);
 
-void Minitel::clear_screen() {
-	if (mode_ == VIDEOTEX) {
-		write(serial_port_, "\x1B\x0C", 2);
-	} else if (mode_ == ANSI) {
-		write(serial_port_, "\x1B[2J\x1B[H", 7);
+		for (size_t i = 0; i < chunk_len; i++) {
+			writeByte(text[pos + i]);
+		}
+		        // Wait for chunk to be sent before continuing
+        tcdrain(_serial_port);
+        
+        // Small delay between chunks
+        usleep(10000);  // 10ms
 	}
-    usleep(300000);
 }
 
 void Minitel::close() {
-    if (serial_port_ <= 0) return;
+    if (_serial_port < 0) return;
     
-	std::cout << "Close.\n";
-    // Flush all buffers (discard pending data)
-    tcflush(serial_port_, TCIOFLUSH);
+    std::cout << "Close.\n";
+    // Restore terminal settings before closing
+    if (tcgetattr(_serial_port, &original_termios_) == 0) {
+        tcsetattr(_serial_port, TCSANOW, &original_termios_);
+    }
     
-    // Close immediately
-    ::close(serial_port_);
-    serial_port_ = -1;
+    tcflush(_serial_port, TCIOFLUSH);
+    ::close(_serial_port);
+    _serial_port = -1;  // ✓ Guard against double close
 }
-
-void Minitel::fsend(
-    const std::string& line,
-    const std::string& cmd1,
-    const std::string& cmd2,
-    const std::string& cmd3)
-{
-    std::istringstream iss(line);
-    std::string word;
-    std::string fline;
-
-    while (iss >> word) {
-        // +1 for space if fline is not empty
-        if (fline.length() + word.length() + (fline.empty() ? 0 : 1) <= 40) {
-            if (!fline.empty())
-                fline += " ";
-            fline += word;
-        } else {
-            // send current line
-            send(cmd1);
-            send(cmd2);
-            send(cmd3);
-            send(fline);
-
-			send("\r\n");
-            // start new line
-            fline = word;
-        }
-    }
-
-    // send remaining line
-    if (!fline.empty()) {
-        send(cmd1);
-        send(cmd2);
-        send(cmd3);
-        send(fline);
-    }
-}
-

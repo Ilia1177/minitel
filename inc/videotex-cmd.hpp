@@ -1,8 +1,9 @@
 #ifndef VIDEOTEX_CMD
 # define VIDEOTEX_CMD
 
-# define DEL "\x08\x08"
-
+# define BS "\x08"
+# define ESC "\x1B"
+# define DC3 "\x13"
 # define CLS "\x0C"
 # define CLEOL "\x18"
 
@@ -10,9 +11,9 @@
 # define COFF "\x14"
 
 # define G0 "\x0F"
-# define SI (0x0f)
+# define SI "\x0f"
 # define G1 "\x0E"
-# define SO (0x0e)
+# define SO "\x0e"
 # define G2 "\x19"
 # define SS2 (0x19)
 
@@ -60,6 +61,7 @@
 # define P_CLAVIER_MAJUSCULE PRO2 "\x6A\x45"
 # define P_CLAVIER_ETENDU PRO3 "\x69\x59\x41"
 # define P_CLAVIER_VIDEOTEX PRO3 "\x6A\x59\x41"
+
 
 # define MODE_INIT_STRING P_ACK_OFF_PRISE P_LOCAL_ECHO_OFF P_ROULEAU_ON P_CLAVIER_MINUSCULE P_CLAVIER_ETENDU
 #endif
