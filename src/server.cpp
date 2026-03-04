@@ -9,13 +9,19 @@
 #include <unistd.h>
 #include <vector>
 
+#include "IndexPage.hpp"
+#include "MazePage.hpp"
+#include "CadavrePage.hpp"
+#include "ContactPage.hpp"
+#include "Forty2Page.hpp"
+
 bool Minitel::edition(unsigned char ch) {
 	switch (ch) {
 				case '\0': 
 					return false;
 				case 'E':
 					std::cout << "input: ANNULATION\n";
-					display_menu();
+					index->display();
 					_state = State::MENU;
 					_buffer.clear();
 					_bufind = 0;
@@ -25,17 +31,17 @@ bool Minitel::edition(unsigned char ch) {
 					send(get_typo());
 					if (_buffer.size() > 0) {
 						_buffer.erase(_buffer.end() - 1);
-						if (_cursorX == 2) {
-							while(_cursorX >= 0) {
+						if (cursorX == 2) {
+							while(cursorX >= 0) {
 								send(BS);
 								writeByte(' ');
 								send(BS);
-								_cursorX--;
+								cursorX--;
 							}
-							_cursorY--; 
-							_cursorX = 39;
+							cursorY--; 
+							cursorX = 39;
 						} else {
-							_cursorX--;
+							cursorX--;
 							send(BS);
 							send(" ");
 							send(BS);
@@ -51,26 +57,26 @@ bool Minitel::edition(unsigned char ch) {
 
 void::Minitel::scrolldown()
 {
-	bool nextLine = _cursorY == 25 ? true : false;
+	bool nextLine = cursorY == 25 ? true : false;
 
 	if (!nextLine)
-		cursor_to(_cursorX, 25);
+		cursor_to(cursorX, 25);
 	send(CUR_UP);
 	if (!nextLine)
-		cursor_to(_cursorX, _cursorY);
+		cursor_to(cursorX, cursorY);
 }
 
 void::Minitel::scrollup() {
-	bool nextLine = _cursorY == 1 ? true : false;
+	bool nextLine = cursorY == 1 ? true : false;
 
 	if (!nextLine) 
-		cursor_to(_cursorX, 1);
+		cursor_to(cursorX, 1);
 	send(CUR_UP);
 	if (!nextLine)
-		cursor_to(_cursorX, _cursorY);
+		cursor_to(cursorX, cursorY);
 }
 
-// x = _cusorX - 5; y = _cursorY + 6;
+// x = _cusorX - 5; y = cursorY + 6;
 void Minitel::update_cursor(int destX, int destY, int margin)
 {
 	bool needMoveX = false;
@@ -83,61 +89,61 @@ void Minitel::update_cursor(int destX, int destY, int margin)
 			send(CUR_LEFT);
 		}
 		send(CUR_UP);
-		if (_cursorY > 1) _cursorY--; destY--;
-		_cursorX = COLS_VIDEOTEX - margin;
+		if (cursorY > 1) cursorY--; destY--;
+		cursorX = COLS_VIDEOTEX - margin;
 	} else if (destX > COLS_VIDEOTEX - margin) {
 		for (int i = 0; i < margin * 2; i++) {
 			if (i == margin / 2) send(get_typo());
 			send(CUR_RIGHT);
 		}
-		if (_cursorY < ROWS_VIDEOTEX) _cursorY++; destY++;
-		_cursorX = margin + 1;
-	} else if (_cursorX != destX) {
+		if (cursorY < ROWS_VIDEOTEX) cursorY++; destY++;
+		cursorX = margin + 1;
+	} else if (cursorX != destX) {
 		needMoveX = true;
 	}
 
 	if (destY <= 0) {
 		send(CUR_UP);
-		if (_cursorY > 1) _cursorY--;
+		if (cursorY > 1) cursorY--;
 	} else if (destY > ROWS_VIDEOTEX) {
 		send(CUR_DOWN);
 		std::cout << "Send cursor down\n";
-		if (_cursorY < ROWS_VIDEOTEX) _cursorY++;
-	} else if (_cursorY != destY) {
+		if (cursorY < ROWS_VIDEOTEX) cursorY++;
+	} else if (cursorY != destY) {
 		needMoveY = true;
 	}
 
 	if (needMoveX && needMoveY) {
 		cursor_to(destX, destY);
 	} else if (needMoveX) {
-		cursor_to(destX, _cursorY);
+		cursor_to(destX, cursorY);
 	} else if (needMoveY) {
-		cursor_to(_cursorX, destY);
+		cursor_to(cursorX, destY);
 	}
-	// std::cout << "update cursor to x: " << std::dec << _cursorX << " y: " << _cursorY << "\n";
+	// std::cout << "update cursor to x: " << std::dec << cursorX << " y: " << cursorY << "\n";
 }
 
 // void Minitel::update_cursor(int x, int y) {
-// 	_cursorX = x % COLS_VIDEOTEX ;
-// 	_cursorY = std::clamp(y, 1, ROWS_VIDEOTEX);
-// 	std::cout << "update cursor to x: " << std::dec << _cursorX << " y: " << _cursorY << "\n";
+// 	cursorX = x % COLS_VIDEOTEX ;
+// 	cursorY = std::clamp(y, 1, ROWS_VIDEOTEX);
+// 	std::cout << "update cursor to x: " << std::dec << cursorX << " y: " << cursorY << "\n";
 // }
 //
 void Minitel::rules() {
 	switch(_state) {
 		case State::STORY :
 		case State::MENU :
-			if (_cursorX == _marginX) {
+			if (cursorX == _marginX) {
 				for (int i = 0; i < _marginX; i++) {
 					send(CUR_RIGHT);
 				}
-				// update_cursor(40, _cursorY - 1);
+				// update_cursor(40, cursorY - 1);
 			}
-			if (_cursorX >= COLS_VIDEOTEX - _marginX) {
+			if (cursorX >= COLS_VIDEOTEX - _marginX) {
 				for (int i = 0; i < _marginX; i++) {
 					send(CUR_RIGHT);
 				}
-				// update_cursor(40, _cursorY - 1);
+				// update_cursor(40, cursorY - 1);
 			}
 		case State::HAZARDOUS:
 		default: return;
@@ -151,7 +157,7 @@ bool Minitel::arrows(unsigned char ch) {
 		  case 'A':
 			std::cout << "input: ARROW up\n";
 			if (_bufind >= width) {
-				update_cursor(_cursorX, _cursorY - 1, _marginX);
+				update_cursor(cursorX, cursorY - 1, _marginX);
 				_bufind -= width;
 				std::cout << "update buffer index: " << std::dec << _bufind << "\n";
 			}
@@ -159,21 +165,21 @@ bool Minitel::arrows(unsigned char ch) {
 		  case 'B':
 			std::cout << "input: ARROW down\n";
 			if (_bufind + width <= _buffer.size()) {
-				update_cursor(_cursorX, _cursorY + 1, _marginX);
+				update_cursor(cursorX, cursorY + 1, _marginX);
 				_bufind += width;
 				std::cout << "update buffer index: " << std::dec << _bufind << "\n";
 			} return true;
 		  case 'C':
 			std::cout << "input: ARROW ->\n";
 			if (!_buffer.empty() && _bufind < _buffer.size()) {
-					update_cursor(_cursorX + 1, _cursorY, _marginX);
+					update_cursor(cursorX + 1, cursorY, _marginX);
 					_bufind++;
 					std::cout << "update buffer index: " << std::dec << _bufind << "\n";
 			}; return true;
 		  case 'D':
 			std::cout << "input: ARROW <-\n";
 			if (_bufind >= 1 && _buffer.size() >= 1) {
-				update_cursor(_cursorX - 1, _cursorY, _marginX);
+				update_cursor(cursorX - 1, cursorY, _marginX);
 				_bufind--;
 			}
 			return true;
@@ -214,7 +220,7 @@ bool Minitel::handle_controle_sequence()
 
 void Minitel::handle_input()
 {
-	static State current;
+	static State current = _state;
     // std::cout << "-> INPUT: ()" << _rbuff.size() << "\n";
     while (_rbuff.size() > 0) {
         // std::cout << "Process size: " << _rbuff.size() << "\n";
@@ -222,15 +228,15 @@ void Minitel::handle_input()
             // std::cout << "INPUT: '\\r', main buffer: '" << _buffer << "'\n";
             switch (current) {
 				case State::MENU:
-					current = index_page(_state, _buffer); break;
+					current = index->handle_input(_buffer); break;
 				case State::HAZARDOUS:
-					current = hazardous_collective(_state, _buffer); break;
+					current = maze->handle_input(_buffer); break;
 				case State::STORY:
-					current = cadavre_exquis(_state, _buffer); break;
+					current = cadavre->handle_input(_buffer); break;
 				case State::FORTY2:
-					current = forty_two(_state, _buffer); break;
+					current = forty2->handle_input(_buffer); break;
 				case State::EMAIL: 
-					current = add_contact(_state, _buffer); break;
+					current = contact->handle_input(_buffer); break;
 				default: break;
             }
             _buffer.clear();              // Clear ONLY after Enter
@@ -273,134 +279,14 @@ std::string Minitel::get_typo() {
 
 void Minitel::display_dialbox() {
 	cursor_to(1, ROWS_VIDEOTEX);
-    send(set_typo(BLACK_CHAR, MAGENTA_BCKG));
-	send(" ->                                     ");
-	scrollup();
-	update_cursor(4, ROWS_VIDEOTEX, 0);
-    send(set_typo(BLACK_CHAR, MAGENTA_BCKG));
+    send(set_typo(WHITE_CHAR, BLACK_BCKG));
+	write_text("->", 0, TRUNC);
 }
 
 void Minitel::display_menu()
 {
     std::cout << "Display menu\n";
-	_cursorX = 1;
-	_cursorY = 1;
-
-	set_typo(WHITE_BCKG, BLACK_CHAR);
-    for (size_t i = 0; i < menu.size(); i++) {
-        send(get_typo());
-        send(menu[i]);
-		if (_cursorY < ROWS_VIDEOTEX) _cursorY++;
-    }
-	send(set_typo(WHITE_CHAR, BLUE_BCKG));
-	send_file("ascii/welcome.txt");
-	display_dialbox();
 }
-
-size_t nextWordLength(const std::string& str, size_t pos = 0) {
-    size_t start = str.find_first_not_of(" \r\n\t", pos);
-    if (start == std::string::npos) return 0;
-	size_t end = str.find_first_of(" \r\n\t", start);
-    if (end == std::string::npos) end = str.size();
-    return end - start;
-}
-
-void Minitel::write_text(const std::string& text, int margin, EditionMode align) {
-	send(get_typo());
-
-	const int lineWidth = COLS_VIDEOTEX - margin * 2;
-	const int colStart = margin + 1;
-	const int colEnd = COLS_VIDEOTEX - margin;
-
-	int len = nextWordLength(text, 0);
-	if (align == LEFT)
-		std::cout << "cursor x: " << _cursorX << std::endl;
-	for (size_t i = 0; i < text.size(); i++) {
-		// handle right margin first -> finish on newline
-		if (_cursorX > colEnd) {
-			for (int i = 0; i < margin; i++) 
-				writeByte(' ');
-			if (_cursorY < ROWS_VIDEOTEX) 
-				_cursorY++;
-			_cursorX = 1;
-		}
-
-		// If the word is too long for the space left, write it on new line (if its longer than the width)
-		if (align == LEFT && _cursorX + len > colEnd + 1 && len <= lineWidth) {
-			for (int i = _cursorX; i <= COLS_VIDEOTEX; i++) writeByte(' ');
-			if (_cursorY < ROWS_VIDEOTEX) 
-				_cursorY++;
-			_cursorX = 1;
-		}
-
-		// finally handle left margin
-		if (_cursorX < colStart) {
-			send(get_typo());
-			for (int i = 0; i < margin; i++) writeByte(' ');
-			_cursorX = colStart;
-			// while (text[i] == ' ')
-			// 	i++;
-		}
-		writeByte(text[i]);
-		if (text[i] == '\r') {
-			_cursorX = 1; 
-		} else if (text[i] == '\n') { 
-			send(get_typo()); 
-			if (_cursorY < ROWS_VIDEOTEX) _cursorY++;
-		} else {
-			_cursorX++;
-			if (text[i] == ' ')
-        		len = nextWordLength(text, i + 1);
-		}
-	}
-	// std::cout << std::dec << "write_text: cursorX: " << _cursorX << " cursorY: " << _cursorY << "\n";
-}
-
-// void Minitel::write_text(const std::string& text, int margin, EditionMode align) {
-// 	send(get_typo());
-//
-	// int len = nextWordLength(text, 0);
-// 	for (size_t i = 0; i < text.size(); i++) {
-// 		// handle left margin -> write two spaces
-// 		if (_cursorX == 1) {
-// 			send(get_typo()); 
-// 			while (_cursorX <= margin) {
-// 				writeByte(' '); 
-// 				_cursorX++; 
-// 			}
-// 		// handle right margin -> finish on newline
-// 		} else if (_cursorX >= COLS_VIDEOTEX - (margin - 1)) {
-// 			while(_cursorX <= COLS_VIDEOTEX) {
-// 				writeByte(' ');
-// 				_cursorX++;
-// 			}
-// 			_cursorX = 1;
-// 			if (_cursorY < ROWS_VIDEOTEX) _cursorY++;
-// 			i--; // because we continue, but we didnt write the current char at i
-// 			continue; // Can with skip continue ? maybe
-// 		} else if (align == LEFT && _cursorX + len > COLS_VIDEOTEX - margin && len < COLS_VIDEOTEX - margin * 2) {
-// 			while (_cursorX <= COLS_VIDEOTEX) { 
-// 				writeByte(' ');
-// 				_cursorX++;
-// 			}
-// 			_cursorX = 1;
-// 			if (_cursorY < ROWS_VIDEOTEX) _cursorY++;
-// 			i--;
-// 		}
-//
-// 		if (text[i] == '\r') {
-// 			send(get_typo()); 
-// 			_cursorX = 1; 
-// 		} else if (text[i] == '\n') { 
-// 			send(get_typo()); 
-// 			if (_cursorY < ROWS_VIDEOTEX) _cursorY++;
-// 		} else {
-// 			_cursorX++;
-// 		}
-// 		writeByte(text[i]);
-// 	}
-// 	// std::cout << std::dec << "write_text: cursorX: " << _cursorX << " cursorY: " << _cursorY << "\n";
-// }
 
 void Minitel::start()
 {
@@ -414,6 +300,8 @@ void Minitel::start()
     tcflush(_serial_port, TCIOFLUSH);
     // int time = 0;
 	_rbuff.clear();
+	index->display();
+	_state = State::MENU;
     display_menu();
     // bool printable = true;
 	std::cout << "start Listening LOOP\n";

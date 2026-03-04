@@ -22,6 +22,12 @@ SRCS	= 	main.cpp\
 			story.cpp\
 			Minitel.cpp\
 			tools.cpp\
+			page/APage.cpp\
+			page/IndexPage.cpp\
+			page/ContactPage.cpp\
+			page/MazePage.cpp\
+			page/CadavrePage.cpp\
+			page/Forty2Page.cpp\
 
 SRCS 	:= 	$(addprefix $(SRC_DIR), $(SRCS))
 OBJS	=	$(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)

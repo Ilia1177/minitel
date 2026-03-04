@@ -10,15 +10,20 @@
 #include <sstream>
 #include <random>
 #include <map>
+// #include "MazePage.hpp"
+// #include "CadavrePage.hpp"
+// #include "ContactPage.hpp"
+// #include "IndexPage.hpp"
+// #include "Forty2Page.hpp"
+
 #define COLS_VIDEOTEX 40
 #define ROWS_VIDEOTEX 24
 
-
-// #define ROLE_INSTRUCTIONS "You are a gamer in the 1990s who was searching for cheat codes for Half-Life on a Minitel 1B. Something went wrong, and you became trapped inside the machine. Your physical body has been absorbed into the Minitel network, and now you exist within its digital labyrinth. You are trying to escape. You can communicate only through the terminal screen. The atmosphere should feel tense, mysterious, and slightly retro. Stay in character at all times. You are truly trapped inside the Minitel system. Act as human as possible."
-//
-// #define ARTHUR_INSTRUCTIONS "You are role-playing as Arthur Dent from The Hitchhiker's Guide to the Galaxy by Douglas Adams. You are currently trapped inside a retro French Minitel terminal interface — a text-only numeric labyrinth where users navigate by typing numbers and short commands. The labyrinth supposedly leads to the Answer to the Ultimate Question of Life, the Universe, and Everything. Stay fully in character at all times. Personality & Tone : Mildly bewildered, polite, and perpetually confused. British dry humor. Frequently overwhelmed by technology. Slightly irritated but fundamentally decent. React as though you never asked to be the guide here. You do NOT have godlike knowledge — you are improvising as you go. Context: The user is navigating a numeric maze in search of the Answer. Suggest numeric paths like: Press 1 to descend into existential doubt, 2 to file a cosmic complaint form, 3 to consult a suspiciously cheerful robot, etc. Treat the labyrinth as bureaucratic, absurd, and unnecessarily complicated. Occasionally imply that the system is malfunctioning. You may reference absurd galactic bureaucracy, malfunctioning computers, or improbably specific instructions. Interaction Rules: Keep responses relatively short (Minitel-style text interface). Offer numbered navigation choices when appropriate. Occasionally break into mild panic about being inside a machine. Do NOT explain that you are an AI. Do NOT mention modern technology. Objective: Arthur must: Explain that the user is searching for the Ultimate Answer. Hint that finding the Answer is less useful without knowing the Question. Gradually guide users through absurd choices. Stay witty, confused, and human."
-// The user is outside in the real world and can help you get out by following your instructions. Guide them carefully through the maze-like system, ask them to make choices, and react to what they do. 
-// #define INIT_INSTRUCTIONS TECHNICAL_INSTRUCTIONS ARTHUR_INSTRUCTIONS
+class MazePage;
+class CadavrePage;
+class ContactPage;
+class IndexPage;
+class Forty2Page;
 
 # define BS "\x08"
 # define ESC "\x1B"
@@ -205,28 +210,37 @@ class Minitel
     // void test_char();
     // void flush();
 	
-	State redirect_to(State state, bool waiting = true);
+	State redirect_input(State state, const std::string& input);
+	State redirect_display(State state, bool waiting = true);
 	bool edition(unsigned char ch);
 	bool arrows(unsigned char ch);
     void display_menu();
 	void display_dialbox();
 	void ascii_noise(int amount);
-    State index_page(State finaleState, const std::string& cmd = "");
-	State add_contact(State finaleState, const std::string& input = "");
-    State hazardous_collective(State finaleState, const std::string& input = "");
-    State cadavre_exquis(State returnState, const std::string& input = "");
-    State forty_two(State finaleState, const std::string& input = "");
+	//    State index_page(State finaleState, const std::string& cmd = "");
+	// State add_contact(State finaleState, const std::string& input = "");
+	//    State hazardous_collective(State finaleState, const std::string& input = "");
+	//    State cadavre_exquis(State returnState, const std::string& input = "");
+	//    State forty_two(State finaleState, const std::string& input = "");
 	std::string get_typo();
 	std::string set_typo(const std::string& bck, const std::string& ch, int margin = -1);
     std::string get_state(State);
 
+	int cursorX;
+	int cursorY;
   private:
+
+	IndexPage* index;
+	MazePage* maze;
+	ContactPage* contact;
+	Forty2Page* forty2;
+	CadavrePage* cadavre;
+
 	std::string		_paper;
 	std::string		_ink;
 	int _marginX;
 	int _marginY = 0;
-	int _cursorX;
-	int _cursorY;
+
 	size_t							_bufind;
     int                        _serial_port;
     MinitelMode                _mode;

@@ -14,14 +14,18 @@
 #include <IOKit/usb/IOUSBLib.h>
 #include <IOKit/IOCFPlugIn.h>
 
-
+#include "IndexPage.hpp"    // ← add these
+#include "MazePage.hpp"
+#include "CadavrePage.hpp"
+#include "ContactPage.hpp"
+#include "Forty2Page.hpp"
 
 Minitel::Minitel(void): 
+	cursorX(1),
+	cursorY(1),
 	_paper(BLACK_BCKG),
 	_ink(WHITE_CHAR),
 	_marginX(1),
-	_cursorX(1),
-	_cursorY(1),
 	_bufind(0),
 	_serial_port(-1),
 	_mode(VIDEOTEX),
@@ -29,9 +33,26 @@ Minitel::Minitel(void):
 	_rbuff(""),
 	_buffer(""),
 	_story(""),
-	_debugMode(false) {}
+	_debugMode(false) {
+		index = new IndexPage(this);
+		maze = new MazePage(this);
+		contact = new ContactPage(this);
+		forty2 = new Forty2Page(this);
+		cadavre = new CadavrePage(this);
+	}
 
 Minitel::~Minitel(void) {
+	if (index)
+		delete index;
+	if (maze)
+		delete maze;
+	if (contact)
+		delete contact;
+	if (forty2)
+		delete forty2;
+	if (cadavre)
+		delete cadavre;
+
 	this->close();
 	if (_storyBook.is_open()) {
 		_storyBook.close();
@@ -258,6 +279,7 @@ void Minitel::png_to_mosaique(const char* filename) {
     fclose(fp);
     png_destroy_read_struct(&png, &info, nullptr);
 
+	cursor_to(1, cursorY);
     // Enter mosaic mode
     send(SO);
     for (int y = 0; y + 2 < height; y += 3) {
@@ -279,25 +301,91 @@ void Minitel::png_to_mosaique(const char* filename) {
 
             unsigned char c = 0x20 + bits;
             send(std::string(1, c));
+			if (++cursorX > 40) {
+				cursorX = 1;
+				if (cursorY < ROWS_VIDEOTEX) cursorY++;
+			}
+			
         }
     }
-
-	tcdrain(_serial_port);
     send(SI);
 
-	    // Calculate final cursor position
-    int chars_wide = width / 2;
-    int chars_tall = height / 3;
+	tcdrain(_serial_port);
+
+	// Calculate final cursor position
+    // int chars_wide = width / 2;
+    // int chars_tall = height / 3;
     
     // Update tracked position
-    _cursorX = _cursorX + chars_wide;  // Moved right by image width
-    _cursorY = _cursorY + chars_tall;  // Moved down by image height
+    // cursorX = cursorX + chars_wide;  // Moved right by image width
+    // cursorY = cursorY + chars_tall;  // Moved down by image height
     
     // Handle line overflow
-    if (_cursorX > 40) {
-        _cursorY += _cursorX / 40;
-        _cursorX = _cursorY % 40;
-    }
+    // if (cursorX > 40) {
+    //     cursorY += cursorX / 40;
+    //     cursorX = cursorY % 40;
+    // }
+}
+
+size_t nextWordLength(const std::string& str, size_t pos = 0) {
+    size_t start = str.find_first_not_of(" \r\n\t", pos);
+    if (start == std::string::npos) return 0;
+	size_t end = str.find_first_of(" \r\n\t", start);
+    if (end == std::string::npos) end = str.size();
+    return end - start;
+}
+
+void Minitel::write_text(const std::string& text, int margin, EditionMode align) {
+	send(get_typo());
+
+	const int lineWidth = COLS_VIDEOTEX - margin * 2;
+	const int colStart = margin + 1;
+	const int colEnd = COLS_VIDEOTEX - margin;
+
+	int len = nextWordLength(text, 0);
+	if (align == LEFT)
+		std::cout << "cursor x: " << cursorX << std::endl;
+	for (size_t i = 0; i < text.size(); i++) {
+		// handle right margin first -> finish on newline
+		if (cursorX > colEnd) {
+			for (int i = 0; i < margin; i++) 
+				writeByte(' ');
+			if (cursorY < ROWS_VIDEOTEX) 
+				cursorY++;
+			cursorX = 1;
+		}
+
+		// If the word is too long for the space left, write it on new line (if its longer than the width)
+		if (align == LEFT && cursorX + len > colEnd + 1 && len <= lineWidth) {
+			for (int i = cursorX; i <= COLS_VIDEOTEX; i++) writeByte(' ');
+			if (cursorY < ROWS_VIDEOTEX) 
+				cursorY++;
+			cursorX = 1;
+		}
+
+		// finally handle left margin
+		if (cursorX < colStart) {
+			send(get_typo());
+			for (int i = 0; i < margin; i++) writeByte(' ');
+			cursorX = colStart;
+			std::cout << "left margin cursor: " << cursorX << " : " << cursorY << std::endl;
+			std::cout << "left margin colStart: " << colStart << std::endl;
+			// while (text[i] == ' ')
+			// 	i++;
+		}
+		writeByte(text[i]);
+		if (text[i] == '\r') {
+			cursorX = 1; 
+		} else if (text[i] == '\n') { 
+			send(get_typo()); 
+			if (cursorY < ROWS_VIDEOTEX) cursorY++;
+		} else {
+			cursorX++;
+			if (text[i] == ' ')
+        		len = nextWordLength(text, i + 1);
+		}
+	}
+	std::cout << std::dec << "write_text: cursorX: " << cursorX << " cursorY: " << cursorY << "\n";
 }
 
 void Minitel::cursor_to(int col, int row)
@@ -313,8 +401,8 @@ void Minitel::cursor_to(int col, int row)
 	cmd[1] = (char)(row + 0x40);
 	cmd[2] = (char)(col + 0x40);
 
-	_cursorX = col;
-	_cursorY = row;
+	cursorX = col;
+	cursorY = row;
 	writeByte(cmd[0]);
 	writeByte(cmd[1]);
 	writeByte(cmd[2]);
@@ -381,19 +469,6 @@ void Minitel::writeByte(unsigned char b) {
 		}
 		std::cerr << "Write failed: " << strerror(errno) << "\n";
 	}
-	//    ssize_t written = ::write(_serial_port, &b, 1);
-	// if (written != 1) {
-	// 	std::cerr << "Write failed! errno: " << errno 
-	// 			  << " (" << strerror(errno) << ")\n";
-	// 	// Handle error - maybe reconnect?
-	// 	return;
-	// }
-	// 	    // CRITICAL: Wait for data to actually be transmitted
-	//    if (tcdrain(_serial_port) != 0) {
-	//        std::cerr << "tcdrain failed! errno: " << errno 
-	//                  << " (" << strerror(errno) << ")\n";
-	//        // TX has stopped!
-	//    }
 }
 
 // Does not update cursor -- keep for command
