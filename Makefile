@@ -11,7 +11,7 @@ ifneq ($(BREW_PREFIX),)
     LDFLAGS += -L$(BREW_PREFIX)/lib
 endif
 
-LDFLAGS += -lpng
+LDFLAGS += -lpng -lcurl
 
 SRC_DIR = src/
 INC_DIR = inc/

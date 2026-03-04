@@ -15,13 +15,14 @@
 #include <IOKit/IOCFPlugIn.h>
 
 
+
 Minitel::Minitel(void): 
 	_paper(BLACK_BCKG),
 	_ink(WHITE_CHAR),
-	_margin(1),
+	_marginX(1),
 	_cursorX(1),
 	_cursorY(1),
-	_rindex(0),
+	_bufind(0),
 	_serial_port(-1),
 	_mode(VIDEOTEX),
 	_state(State::MENU),
@@ -36,19 +37,23 @@ Minitel::~Minitel(void) {
 		_storyBook.close();
 		std::cout << "Close story book.\n";
 	}
+	if (_contacts.is_open()) {
+		_storyBook.close();
+		std::cout << "Close story book.\n";
+	}
 }
 
-std::string Minitel::get_state() {
+std::string Minitel::get_state(State state) {
 	std::string str;
-	if (_state == State::MENU) {
+	if (state == State::MENU) {
 		str = "MENU";
-	} else if (_state == State::HAZARDOUS) {
+	} else if (state == State::HAZARDOUS) {
 		str=  "HAZARDOUS";
-	} else if (_state == State::STORY) {
+	} else if (state == State::STORY) {
 		str = "STORY";
-	} else if (_state == State::FORTY2) {
+	} else if (state == State::FORTY2) {
 		str = "FORTY2";
-	} else if (_state == State::EMAIL) {
+	} else if (state == State::EMAIL) {
 		str = "EMAIL";
 	}
 	return str;
@@ -56,14 +61,19 @@ std::string Minitel::get_state() {
 
 int Minitel::init(int ac, char** av) {
 
+	bool minitel = true;
 	if (ac > 2 && std::string(av[2]) == "-d") {
 		_debugMode = true;
+	} else if (ac < 2 && std::string(av[2]) == "-d") {
+		_debugMode = true;
+		_serial_port = 0;
+		minitel = false;
 	} else if (ac < 2) {
 		std::cerr << "Please provide a socket.\n";
 		return 1;
 	}
 
-	if (configure_serial(av[1]) < 0) {
+	if (minitel && configure_serial(av[1]) < 0) {
 		return -1;
 	}
 
@@ -98,6 +108,7 @@ int Minitel::configure_serial(const char* port) {
         perror("Erreur ouverture port");
         return -1;
     }
+	usleep(1000000); // 100ms — let USB enumerate properly
 	tcgetattr(_serial_port, &original_termios_);
 
     tcflush(_serial_port, TCIOFLUSH);  // Flush both input and output
@@ -291,19 +302,11 @@ void Minitel::png_to_mosaique(const char* filename) {
 
 void Minitel::cursor_to(int col, int row)
 {
-	if (row > ROWS_VIDEOTEX + 1 || row < 0)
+	if (row > ROWS_VIDEOTEX || row < 1)
 		return;
-	if (col > COLS_VIDEOTEX || col < 0)
+	if (col > COLS_VIDEOTEX || col < 1)
 		return;
 
-	if (row == 0) { 
-		cursor_to(col, 1);
-		send(CUR_UP);
-		return;
-	} else if (row == ROWS_VIDEOTEX + 1) {
-		cursor_to(col, ROWS_VIDEOTEX);
-		send(CUR_DOWN);
-	}
     char cmd[3];
 
 	cmd[0] = 0x1F;
@@ -318,32 +321,38 @@ void Minitel::cursor_to(int col, int row)
 	tcdrain(_serial_port);
 }
 
+void Minitel::send_file(const std::string &path, size_t lines) {
+	std::ifstream ifile(path, std::ios::binary);
+    if (!ifile.is_open()) {
+        std::cerr << "Error opening file\n";
+        return;
+    }
 
-// void Minitel::clear_line() {
-// 	unsigned char c = 0x18;
-// 	write(serial_port_, &c, 1);
-// 	tcdrain(serial_port_);
-// }
+    std::string line;
+    write_text("\r", 0);
 
-
-
-
-void Minitel::send_file(const std::string &path) {
-	std::ifstream ifile(path);
-	if (!ifile.is_open()) {
-		std::cerr << "Error opening story.txt\n";
-		return;
-	}
-	std::string line;
-	cursor_to(1, _cursorY++);
-	while(std::getline(ifile, line)) {
-		write_text(line);
-	}
-	cursor_to(1, _cursorY++);
-	ifile.close();
+    if (lines == 0) {
+        while (std::getline(ifile, line)) {
+			if (!line.empty() && line.back() == '\r')
+        		line.pop_back();
+            write_text(line);
+		}
+    } else {
+        std::deque<std::string> buffer;
+        while (std::getline(ifile, line)) {
+            buffer.push_back(line);
+            if (buffer.size() > lines)
+                buffer.pop_front();
+        }
+        for (std::string &l : buffer) {
+			if (!l.empty() && l.back() == '\r')
+        		l.pop_back();
+            write_text(l);
+		}
+    }
+    ifile.close();
 }
 
-//
 void Minitel::writeByte(unsigned char b) {
     // Calculate even parity for lower 7 bits
     bool parity = __builtin_parity(b & 0x7F);
@@ -354,58 +363,40 @@ void Minitel::writeByte(unsigned char b) {
     } else {
         b &= 0x7F;
     }
-
-    ssize_t written = ::write(_serial_port, &b, 1);
-	if (written != 1) {
-		std::cerr << "Write failed! errno: " << errno 
-				  << " (" << strerror(errno) << ")\n";
-		// Handle error - maybe reconnect?
-		return;
+	ssize_t written;
+	int retry = 0;
+	do {
+		written = ::write(_serial_port, &b, 1);
+		if (written == -1 && errno == EAGAIN) {
+			usleep(1000); // wait 1ms and retry
+			retry++;
+		}
+	} while (written == -1 && errno == EAGAIN && retry < 10);
+	if (written == -1) {
+		if (errno == EIO || errno == ENXIO) {
+			std::cerr << "Device disconnected!\n";
+			::close(_serial_port);
+			_serial_port = -1;
+			// optionally try to reconnect
+		}
+		std::cerr << "Write failed: " << strerror(errno) << "\n";
 	}
-		    // CRITICAL: Wait for data to actually be transmitted
-    if (tcdrain(_serial_port) != 0) {
-        std::cerr << "tcdrain failed! errno: " << errno 
-                  << " (" << strerror(errno) << ")\n";
-        // TX has stopped!
-    }
+	//    ssize_t written = ::write(_serial_port, &b, 1);
+	// if (written != 1) {
+	// 	std::cerr << "Write failed! errno: " << errno 
+	// 			  << " (" << strerror(errno) << ")\n";
+	// 	// Handle error - maybe reconnect?
+	// 	return;
+	// }
+	// 	    // CRITICAL: Wait for data to actually be transmitted
+	//    if (tcdrain(_serial_port) != 0) {
+	//        std::cerr << "tcdrain failed! errno: " << errno 
+	//                  << " (" << strerror(errno) << ")\n";
+	//        // TX has stopped!
+	//    }
 }
 
-// void Minitel::wait_for_minitel_ready() {
-//     std::cout << "\n=== MINITEL STARTUP CHECK ===\n";
-//     std::cout << "Watch the UART adapter LEDs:\n";
-//     std::cout << "- RX LED flashing? Minitel is still booting...\n";
-//     std::cout << "- RX LED off? Minitel is ready!\n\n";
-//
-//     char buf[256];
-//     bool detected_traffic = false;
-//     int quiet_count = 0;
-//
-//     while (quiet_count < 20) {  // 2 seconds of silence = ready
-//         usleep(100000);
-//
-//         int n = ::read(serial_port_, buf, sizeof(buf));
-//         if (n > 0) {
-//             detected_traffic = true;
-//             quiet_count = 0;
-//             std::cout << "⚠ RX active - Minitel sending " << n << " bytes\n";
-//         } else {
-//             quiet_count++;
-//             if (quiet_count % 5 == 0 && detected_traffic) {
-//                 std::cout << "✓ RX quiet for " << (quiet_count * 100) << "ms...\n";
-//             }
-//         }
-//     }
-//
-//     if (detected_traffic) {
-//         std::cout << "✓ Minitel startup sequence complete!\n";
-//     } else {
-//         std::cout << "⚠ No startup data detected (Minitel may have been already on)\n";
-//     }
-//
-//     tcflush(serial_port_, TCIOFLUSH);
-//     std::cout << "=== READY TO SEND ===\n\n";
-// }
-
+// Does not update cursor -- keep for command
 void Minitel::send(const std::string& text) {
 	if (text.empty())
 		return;
@@ -417,7 +408,7 @@ void Minitel::send(const std::string& text) {
 		for (size_t i = 0; i < chunk_len; i++) {
 			writeByte(text[pos + i]);
 		}
-		        // Wait for chunk to be sent before continuing
+		// Wait for chunk to be sent before continuing
         tcdrain(_serial_port);
         
         // Small delay between chunks

@@ -8,10 +8,17 @@
 #include <iostream>
 #include <termios.h>
 #include <sstream>
-
+#include <random>
 #include <map>
 #define COLS_VIDEOTEX 40
 #define ROWS_VIDEOTEX 24
+
+
+// #define ROLE_INSTRUCTIONS "You are a gamer in the 1990s who was searching for cheat codes for Half-Life on a Minitel 1B. Something went wrong, and you became trapped inside the machine. Your physical body has been absorbed into the Minitel network, and now you exist within its digital labyrinth. You are trying to escape. You can communicate only through the terminal screen. The atmosphere should feel tense, mysterious, and slightly retro. Stay in character at all times. You are truly trapped inside the Minitel system. Act as human as possible."
+//
+// #define ARTHUR_INSTRUCTIONS "You are role-playing as Arthur Dent from The Hitchhiker's Guide to the Galaxy by Douglas Adams. You are currently trapped inside a retro French Minitel terminal interface — a text-only numeric labyrinth where users navigate by typing numbers and short commands. The labyrinth supposedly leads to the Answer to the Ultimate Question of Life, the Universe, and Everything. Stay fully in character at all times. Personality & Tone : Mildly bewildered, polite, and perpetually confused. British dry humor. Frequently overwhelmed by technology. Slightly irritated but fundamentally decent. React as though you never asked to be the guide here. You do NOT have godlike knowledge — you are improvising as you go. Context: The user is navigating a numeric maze in search of the Answer. Suggest numeric paths like: Press 1 to descend into existential doubt, 2 to file a cosmic complaint form, 3 to consult a suspiciously cheerful robot, etc. Treat the labyrinth as bureaucratic, absurd, and unnecessarily complicated. Occasionally imply that the system is malfunctioning. You may reference absurd galactic bureaucracy, malfunctioning computers, or improbably specific instructions. Interaction Rules: Keep responses relatively short (Minitel-style text interface). Offer numbered navigation choices when appropriate. Occasionally break into mild panic about being inside a machine. Do NOT explain that you are an AI. Do NOT mention modern technology. Objective: Arthur must: Explain that the user is searching for the Ultimate Answer. Hint that finding the Answer is less useful without knowing the Question. Gradually guide users through absurd choices. Stay witty, confused, and human."
+// The user is outside in the real world and can help you get out by following your instructions. Guide them carefully through the maze-like system, ask them to make choices, and react to what they do. 
+// #define INIT_INSTRUCTIONS TECHNICAL_INSTRUCTIONS ARTHUR_INSTRUCTIONS
 
 # define BS "\x08"
 # define ESC "\x1B"
@@ -24,9 +31,9 @@
 // # define SO "\x0e"
 // # define G2 "\x19"
 
-# define PRO1 "\x1B\x39"
-# define PRO2 "\x1B\x3A"
-# define PRO3 "\x1B\x3B"
+# define PRO1 ESC "\x39"
+# define PRO2 ESC "\x3A"
+# define PRO3 ESC "\x3B"
 
 // # define SS2 (0x19)
 # define MT_BS 0x08
@@ -139,6 +146,14 @@ enum MinitelMode {
     ANSI      // 80 columns, ANSI codes
 };
 
+enum EditionMode {
+	TRUNC,
+	JUSTIFY,
+	CENTER,
+	LEFT,
+	RIGHT
+};
+
 extern bool g_interrupt;
 
 template <typename T> std::string fit(T value, int width, int precision = 2, char fillChar = 32)
@@ -160,25 +175,29 @@ bool user_line(const std::string& str, std::string& input, bool blocking = true)
 class Minitel
 {
   public:
+    enum class State { MENU, HAZARDOUS, STORY, FORTY2, EMAIL };
     ~Minitel();
     Minitel(void);
 
     int    configure_serial(const char* port);
     void   writeByte(unsigned char b);
-    void   write_text(const std::string& text, int margin = 1);
+    void   write_text(const std::string& text, int margin = 1, EditionMode mode = TRUNC);
 
     void   start();
     int    init(int ac, char** av);
     void   handle_input();
     bool   handle_controle_sequence();
-    void   exec_choice(const std::string& cmd = "");
     void   close();
 
-	void	update_cursor(int x, int y);
+	void scrollup();
+	void scrolldown();
+
+	void	rules();
+	void	update_cursor(int x, int y, int margin);
 	int changeSpeed(int bauds);  // Voir p.141
     void   png_to_mosaique(const char* filename);
     void   send(const std::string& text);
-    void   send_file(const std::string& path);
+    void   send_file(const std::string& path, size_t lines = 0);
 
     size_t dial_menu(const std::vector<std::string>& menu);
 
@@ -186,25 +205,29 @@ class Minitel
     // void test_char();
     // void flush();
 	
+	State redirect_to(State state, bool waiting = true);
 	bool edition(unsigned char ch);
 	bool arrows(unsigned char ch);
     void display_menu();
 	void display_dialbox();
-    void hazardous_collective(const std::string& input = "");
-    void cadavre_exquis(const std::string& input = "");
-    void forty_two(const std::string& input = "");
+	void ascii_noise(int amount);
+    State index_page(State finaleState, const std::string& cmd = "");
+	State add_contact(State finaleState, const std::string& input = "");
+    State hazardous_collective(State finaleState, const std::string& input = "");
+    State cadavre_exquis(State returnState, const std::string& input = "");
+    State forty_two(State finaleState, const std::string& input = "");
 	std::string get_typo();
 	std::string set_typo(const std::string& bck, const std::string& ch, int margin = -1);
-    std::string get_state();
+    std::string get_state(State);
 
   private:
-    enum class State { MENU, HAZARDOUS, STORY, FORTY2, EMAIL };
 	std::string		_paper;
 	std::string		_ink;
-	int _margin;
+	int _marginX;
+	int _marginY = 0;
 	int _cursorX;
 	int _cursorY;
-	size_t							_rindex;
+	size_t							_bufind;
     int                        _serial_port;
     MinitelMode                _mode;
     State                      _state;
@@ -212,9 +235,10 @@ class Minitel
     std::string                _buffer;
     std::string                _story;
 
+	std::string 			_instructions;
 	// std::map<Page, std::string> _book;
     std::fstream _storyBook;
-    std::ofstream _email;
+    std::ofstream _contacts;
     bool          _debugMode;
 	
 	struct termios original_termios_;  // Save original settings

@@ -22,7 +22,7 @@ int main(int ac, char** av)
 		"exit", 
 		"clear", 
 		"start 1200bds",
-		"start 9600bds",
+		"write text",
 		"print file.txt",
 	};
 
@@ -31,9 +31,13 @@ int main(int ac, char** av)
 	while(!g_interrupt) {
 		switch(m.dial_menu(menu)) {
 			case 1: g_interrupt = true; break;
-			case 2: m.send(CLEAR); break;
+			case 2: m.send(CUR_LEFT); break;
 			case 3: m.start(); break;
-			case 4: m.send(SPEED_9600); m.start(); break;
+			case 4: 
+				int x, y;
+				user_line("x: ", x);
+				user_line("y: ", y);
+				m.update_cursor(x, y, 0); break;
 			case 5: m.send_file("ascii/ascii_art.txt");
 			default:
 				break;
