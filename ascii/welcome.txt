@@ -1,10 +1,9 @@
- Bonjour & bienvenue AUX              
+ bOnjouR & bieNveNue AuX              
              porteS oUVerTEs          
          De l'ecOle 42 AngOulEmE  !   
---------------------------------------
+----42424242424--------4242---4242----
 The 42-Creative labotory is happy to  
-    introduce you to its exciting     
-numericals and digitals experiements..
-Would you like to div in ? (yes/no)   
---------------------------------------
-
+    introduce you to its numericals   
+  and digitals experiements...        
+       Would you like to dive in ?    
+---> type 'hazardous' to continue <---

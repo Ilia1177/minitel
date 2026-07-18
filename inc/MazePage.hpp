@@ -11,8 +11,10 @@ class MazePage: public APage
 
 		void display();
 		Minitel::State handle_input(const std::string& input);
+		void reset();
 
 	private:
+		std::string phrase;
 		int _level;
         MazePage(void);
         MazePage(const MazePage& other);

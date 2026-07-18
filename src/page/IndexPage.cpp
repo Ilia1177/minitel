@@ -1,6 +1,9 @@
 #include "IndexPage.hpp"
+#include "ContactPage.hpp"
 #include <curl/curl.h>
 #include <nlohmann/json.hpp> // optional, for JSON parsing
+#include "CadavrePage.hpp"
+#include "MazePage.hpp"
 
 IndexPage::IndexPage(Minitel* minitel) : APage(minitel) {}
 
@@ -33,7 +36,7 @@ const char* ARTHUR_PROMPT =
 "for the Answer to the Ultimate Question of Life, the Universe, and Everything. "
 "Do NOT reveal the Answer (42). "
 "Treat the labyrinth as absurd, bureaucratic, malfunctioning, and unnecessarily complicated. "
-"IMPORTANT: Keep responses short (Minitel-style, 60 tokens max). "
+"IMPORTANT: Keep responses short (60 tokens maximum)! "
 "Offer numbered navigation options frequently (e.g., 1, 2, 3). "
 "Occasionally panic mildly about being inside a machine. "
 "Never mention being an AI or modern technology. "
@@ -75,7 +78,7 @@ static size_t StreamCallback(void* contents, size_t size, size_t nmemb, void* us
 					'?'
 				);
 				data->fullResponse += token;
-                data->minitel->write_text(token, 1, LEFT); // write token as it arrives
+                // data->minitel->write_text(token, 1, LEFT); // write token as it arrives
             }
         } catch (...) {}
     }
@@ -145,64 +148,107 @@ void IndexPage::display() {
     m.send(m.set_typo(BLACK_CHAR, MAGENTA_BCKG));
 	m.write_text("     A collective digital labotory      ");
 	m.write_text("      ...looking for the question..     ");
-	m.write_text("    explore by yourself     404 !       ");
+	m.write_text("    explore by yourself                 ");
 	m.send(m.set_typo(WHITE_CHAR, BLUE_BCKG));
 	m.send_file("ascii/welcome.txt");
-	std::cout << "INDEX PAGE: cursor " << m.cursorX << " : " << m.cursorY << "\n"; 
+	// std::cout << "INDEX PAGE: cursor " << m.cursorX << " : " << m.cursorY << "\n"; 
     m.send(m.set_typo(WHITE_CHAR, BLACK_BCKG));
 	m.display_dialbox();
-	std::cout << "INDEX PAGE: cursor " << m.cursorX << " : " << m.cursorY << "\n"; 
+	// std::cout << "INDEX PAGE: cursor " << m.cursorX << " : " << m.cursorY << "\n"; 
 }
 
 Minitel::State IndexPage::handle_input(const std::string& input) {
+	std::vector<std::string> cmd;
+
+	std::istringstream iss(input);
+	std::string word;
+	while (iss >> word) {
+		cmd.push_back(word);
+	}
 	// Minitel::State endState = Minitel::State::MENU;
 	std::cout << "index page > handle user input: " << input << "\n";
-	Minitel &m = *_minitel;
 
-	std::string::size_type pos;
-		if (input == "y") {
+	if (cmd.size() < 1) {
+		return Minitel::State::MENU;
+	}
+	Minitel &m = *_minitel;
+	ThermalPrinter *printer = m.get_printer();
+		if (cmd[0] == "hazardous") {
+			m.send(CLEAR);
+			m.ascii_noise(100);
+			m.maze->endState = Minitel::State::MENU;
 			return m.redirect_display(Minitel::State::HAZARDOUS);
-		} else if (input == "stars") {
+		} else if (cmd[0] == ":stars") {
 			m.ascii_noise(100);
 			m.display_dialbox();
-		} else if (input == "cadavre") {
-			return m.redirect_display(Minitel::State::STORY);
-		} else if (input == "cadavre -full") {
-			m.send_file("story.txt");
-			m.display_dialbox();
-		} else if (input == "n") {
+		} else if (cmd[0] == ":cadavre") {
+			if (cmd.size() > 1 && cmd[1] == "--full") {
+				m.send_file("story.txt");
+				m.display_dialbox();
+			} else {
+				m.cadavre->endState = Minitel::State::MENU;
+				return m.redirect_display(Minitel::State::STORY, false);
+			}
+		} else if (cmd[0] == "n") {
 			return m.redirect_display(Minitel::State::FORTY2);
-		} else if ((pos = input.find("INSTRUCTIONS", 0)) != std::string::npos) {
-			std::string newInstructions = input.substr(pos);
+		} else if (cmd[0] == ":instructions") {
 			std::string newPrompt;
 			g_messages.clear();
-			if (newInstructions.empty()) {
-				newPrompt = ARTHUR_PROMPT;
-				newPrompt += TECHNICAL_INSTRUCTIONS;
-				g_messages = json::array({
-					{{"role", "system"}, {"content", newPrompt}}
-				});
-			} else if (newInstructions == "minitech"){
+			if (cmd.size() > 1 && cmd[1] == "minitech") {
 				newPrompt = MINITEL_TECH_PROMPT;
 				newPrompt += TECHNICAL_INSTRUCTIONS;
 				g_messages = json::array({
 					{{"role", "system"}, {"content", newPrompt}}
 				});
-			} else {
+			} else if (cmd.size() > 1) {
+				for (size_t i = 1; i < cmd.size(); i++) 
+					newPrompt += " " + cmd[i];
 				g_messages = json::array({
-					{{"role", "system"}, {"content", newInstructions + ". " + TECHNICAL_INSTRUCTIONS}}
+					{
+						{"role", "system"}, 
+						{"content", newPrompt + ". " + TECHNICAL_INSTRUCTIONS}
+					}
+				});
+			} else if (cmd.size() == 1) {
+				newPrompt = ARTHUR_PROMPT;
+				newPrompt += TECHNICAL_INSTRUCTIONS;
+				g_messages = json::array({
+					{{"role", "system"}, {"content", newPrompt}}
 				});
 			}
 			m.display_dialbox();
+		} else if (cmd[0] == ":what") {
+			if (!printer) {
+				m.display_dialbox();
+				return Minitel::State::MENU;
+			}
+			printer->printPNG("gribouille.png");
+			printer->dot_feed(30);
+			m.display_dialbox();
+		} else if (cmd[0] == ":question") {
+			m.write_text("You asked the right question...\r\n");
+			printer->printPNG("chou.png");
+			printer->dot_feed(20);
+			m.display_dialbox();
+		} else if (cmd[0] == ":univers") {
+			printer->printPNG("chou.png");
+			printer->dot_feed(30);
+			m.write_text("Well done ! take your ticket now\r\n");
+			m.display_dialbox();
+		} else if (cmd[0] == ":register") {
+			m.ascii_noise(10);
+			m.contact->endState = Minitel::State::MENU;
+			return m.redirect_display(Minitel::State::EMAIL);
 		} else {
-			std::cout << "User interacting with system.\n";
+			std::cout << "[PAGE] index: User interacting with system personality...\n";
 			m.update_cursor(1, m.cursorY + 1, 0);
+			m.write_text("\r REQUEST TO SYSTEME... PLEASE WAIT...\r");
 			m.set_typo(BLACK_CHAR, CYAN_BCKG);
-			std::string reply = askOllama("llama3.1", input , &m);
+			std::string reply = askOllama("llama3.1", input , _minitel);
+			m.write_text(reply);
 			std::cout << "System has replied: " << reply << "\n";
-			m.write_text(reply, LEFT);
 			m.send(CUR_DOWN);
 			m.display_dialbox();
-		}
+		} 
 	return Minitel::State::MENU;
 }

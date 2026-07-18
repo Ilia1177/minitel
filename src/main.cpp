@@ -1,7 +1,7 @@
 #include "Minitel.hpp"
 #include <signal.h>
 
-bool g_interrupt = false;
+// bool g_interrupt = false;
 
 void signal_handler(int signum) {
 	if (signum == SIGINT)
@@ -22,7 +22,7 @@ int main(int ac, char** av)
 		"exit", 
 		"clear", 
 		"start 1200bds",
-		"write text",
+		"init tph",
 		"print file.txt",
 	};
 
@@ -33,11 +33,7 @@ int main(int ac, char** av)
 			case 1: g_interrupt = true; break;
 			case 2: m.send(CUR_LEFT); break;
 			case 3: m.start(); break;
-			case 4: 
-				int x, y;
-				user_line("x: ", x);
-				user_line("y: ", y);
-				m.update_cursor(x, y, 0); break;
+			case 4: user_line("enter device path: ", line); m.init_tph(line); break;
 			case 5: m.send_file("ascii/ascii_art.txt");
 			default:
 				break;

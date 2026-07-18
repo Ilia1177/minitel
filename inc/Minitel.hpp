@@ -1,6 +1,7 @@
 #ifndef MINITEL_HPP
 #define MINITEL_HPP
 
+#include "ThermalPrinter.hpp"
 // #include "Page.hpp"
 // #include "videotex-cmd.hpp"
 #include <fstream>
@@ -143,7 +144,7 @@ class Forty2Page;
 #define FUNCTION_EXTENDED   PRO3 "\x69\x59"      // Extended function keys
 #define FUNCTION_STANDARD   PRO3 "\x6A\x59"      // Standard function keys
 												 //
-#define INIT MIXED_MODE ACK_OFF ECHO_OFF SCROLL_ON KEYBOARD_LOWER KEYBOARD_EXTENDED CON// Videotex mode, echo OFF, no ACK
+#define INIT MIXED_MODE ACK_OFF ECHO_OFF SCROLL_ON KEYBOARD_LOWER KEYBOARD_EXTENDED // Videotex mode, echo OFF, no ACK
 // #define INIT INIT_MIXED_MODE PRO2 "\x69\x58" "\x64" "\x51" PRO3 "\x61" // Videotex mode, echo OFF, no ACK
 // #define INIT         MODE_INIT_STRING CON
 enum MinitelMode {
@@ -151,13 +152,7 @@ enum MinitelMode {
     ANSI      // 80 columns, ANSI codes
 };
 
-enum EditionMode {
-	TRUNC,
-	JUSTIFY,
-	CENTER,
-	LEFT,
-	RIGHT
-};
+
 
 extern bool g_interrupt;
 
@@ -180,14 +175,22 @@ bool user_line(const std::string& str, std::string& input, bool blocking = true)
 class Minitel
 {
   public:
+enum class EditionMode {
+	TRUNC,
+	JUSTIFY,
+	CENTER,
+	LEFT,
+	RIGHT
+};
     enum class State { MENU, HAZARDOUS, STORY, FORTY2, EMAIL };
     ~Minitel();
     Minitel(void);
 
     int    configure_serial(const char* port);
     void   writeByte(unsigned char b);
-    void   write_text(const std::string& text, int margin = 1, EditionMode mode = TRUNC);
+    void   write_text(const std::string& text, int margin = 1, EditionMode mode = EditionMode::TRUNC);
 
+	void	init_tph(std::string& path);
     void   start();
     int    init(int ac, char** av);
     void   handle_input();
@@ -226,15 +229,18 @@ class Minitel
 	std::string set_typo(const std::string& bck, const std::string& ch, int margin = -1);
     std::string get_state(State);
 
+	ThermalPrinter* get_printer();
 	int cursorX;
 	int cursorY;
-  private:
 
 	IndexPage* index;
 	MazePage* maze;
 	ContactPage* contact;
 	Forty2Page* forty2;
 	CadavrePage* cadavre;
+  private:
+
+	ThermalPrinter *_printer;
 
 	std::string		_paper;
 	std::string		_ink;

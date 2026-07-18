@@ -11,6 +11,8 @@ class APage
 		virtual void display() = 0;
 		virtual Minitel::State handle_input(const std::string& input) = 0;
 
+		Minitel::State endState;
+
 	protected:
 		Minitel* _minitel;
 

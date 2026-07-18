@@ -22,6 +22,7 @@ bool Minitel::edition(unsigned char ch) {
 				case 'E':
 					std::cout << "input: ANNULATION\n";
 					index->display();
+					maze->reset();
 					_state = State::MENU;
 					_buffer.clear();
 					_bufind = 0;
@@ -123,33 +124,6 @@ void Minitel::update_cursor(int destX, int destY, int margin)
 	// std::cout << "update cursor to x: " << std::dec << cursorX << " y: " << cursorY << "\n";
 }
 
-// void Minitel::update_cursor(int x, int y) {
-// 	cursorX = x % COLS_VIDEOTEX ;
-// 	cursorY = std::clamp(y, 1, ROWS_VIDEOTEX);
-// 	std::cout << "update cursor to x: " << std::dec << cursorX << " y: " << cursorY << "\n";
-// }
-//
-void Minitel::rules() {
-	switch(_state) {
-		case State::STORY :
-		case State::MENU :
-			if (cursorX == _marginX) {
-				for (int i = 0; i < _marginX; i++) {
-					send(CUR_RIGHT);
-				}
-				// update_cursor(40, cursorY - 1);
-			}
-			if (cursorX >= COLS_VIDEOTEX - _marginX) {
-				for (int i = 0; i < _marginX; i++) {
-					send(CUR_RIGHT);
-				}
-				// update_cursor(40, cursorY - 1);
-			}
-		case State::HAZARDOUS:
-		default: return;
-	}
-}
-
 bool Minitel::arrows(unsigned char ch) {
 	size_t width = COLS_VIDEOTEX;
 	switch(ch) {
@@ -202,7 +176,11 @@ bool Minitel::handle_controle_sequence()
 					if (!arrows(_rbuff[2])) 
 						return false;
 					_rbuff.erase(0, 3);
-				default : _rbuff.clear(); return true;
+					return true;
+				default :
+					std::cerr << "Comand not handle\n";
+					_rbuff.clear(); 
+					return true;
 			} 
         case MT_DC3:
             if (!edition(_rbuff[1]))
@@ -220,25 +198,12 @@ bool Minitel::handle_controle_sequence()
 
 void Minitel::handle_input()
 {
-	static State current = _state;
     // std::cout << "-> INPUT: ()" << _rbuff.size() << "\n";
     while (_rbuff.size() > 0) {
         // std::cout << "Process size: " << _rbuff.size() << "\n";
         if (_rbuff[0] == '\r') {
-            // std::cout << "INPUT: '\\r', main buffer: '" << _buffer << "'\n";
-            switch (current) {
-				case State::MENU:
-					current = index->handle_input(_buffer); break;
-				case State::HAZARDOUS:
-					current = maze->handle_input(_buffer); break;
-				case State::STORY:
-					current = cadavre->handle_input(_buffer); break;
-				case State::FORTY2:
-					current = forty2->handle_input(_buffer); break;
-				case State::EMAIL: 
-					current = contact->handle_input(_buffer); break;
-				default: break;
-            }
+			send(COFF);
+			_state = redirect_input(_state, _buffer);
             _buffer.clear();              // Clear ONLY after Enter
 			_bufind = 0;
             _rbuff.erase(_rbuff.begin()); // Remove the '\r'
@@ -280,7 +245,9 @@ std::string Minitel::get_typo() {
 void Minitel::display_dialbox() {
 	cursor_to(1, ROWS_VIDEOTEX);
     send(set_typo(WHITE_CHAR, BLACK_BCKG));
-	write_text("->", 0, TRUNC);
+	write_text("->                                     ", 0, EditionMode::TRUNC);
+	cursor_to(3, ROWS_VIDEOTEX);
+	send(CON);
 }
 
 void Minitel::display_menu()
@@ -293,17 +260,15 @@ void Minitel::start()
     struct pollfd pfd;
     char          buf[32];
 
+	send(COFF);
 	_marginX = 1;
 	_bufind = 0;
     pfd.fd = _serial_port;
     pfd.events = POLLIN;
-    tcflush(_serial_port, TCIOFLUSH);
-    // int time = 0;
+    // tcflush(_serial_port, TCIOFLUSH);
 	_rbuff.clear();
 	index->display();
 	_state = State::MENU;
-    display_menu();
-    // bool printable = true;
 	std::cout << "start Listening LOOP\n";
     while (!g_interrupt) {
 

@@ -3,7 +3,6 @@ NAME 	= 	minitel
 CXXFLAGS	=	-Wall -Wextra -Werror -std=c++17 -g -O0
 ASANFLAGS   = -fsanitize=address
 CXX 		=	c++
-
 # Homebrew paths for macOS
 BREW_PREFIX = $(shell brew --prefix 2>/dev/null)
 ifneq ($(BREW_PREFIX),)
@@ -12,16 +11,20 @@ ifneq ($(BREW_PREFIX),)
 endif
 
 LDFLAGS += -lpng -lcurl
+INCS            += -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
+
+LDFLAGS += -L/usr/local/lib -lhpdf -L$(HOME)/.local/lib -lhzd -lfreetype
 
 SRC_DIR = src/
 INC_DIR = inc/
 OBJ_DIR	= .objs/
-INCS		+= -I$(INC_DIR)
+INCS            += -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
 SRCS	= 	main.cpp\
 			server.cpp\
 			story.cpp\
 			Minitel.cpp\
 			tools.cpp\
+			ThermalPrinter.cpp\
 			page/APage.cpp\
 			page/IndexPage.cpp\
 			page/ContactPage.cpp\

@@ -10,6 +10,7 @@ class ContactPage: public APage
 
 		void display();
 		Minitel::State handle_input(const std::string &input);
+		void register_contact(const std::string& contact);
 	private:
         ContactPage(void);
         ContactPage(const ContactPage& other);

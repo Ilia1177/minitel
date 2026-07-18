@@ -23,14 +23,16 @@ void CadavrePage::display() {
 	m.send_file("story.txt", 20);
 }
 
-Minitel::State CadavrePage::handle_input(const std::string& input) {
-	std::cout << "User enter cadavre exquis.\n";
+Minitel::State CadavrePage::handle_input(const std::string& input)
+{
+	Minitel &m = *_minitel;
+	
+	std::cout << "Cadavre exquis > handle user input: " << input << "\n";;
+	std::cout << "\tend state: " << m.get_state(endState) << "\n";
 	// std::cout << "\tCurrent: " << get_state(_state) << "\n";
 	// std::cout << "\tfinal  : " << get_state(finaleState) << "\n";
 
-	Minitel &m = *_minitel;
-		std::ofstream file;
-
+		std::fstream file;
 		// Mionitel::State state = finaleState;
 		file.open("story.txt", std::ios::in | std::ios::out | std::ios::app);
 		if (!file.is_open()) {
@@ -42,18 +44,43 @@ Minitel::State CadavrePage::handle_input(const std::string& input) {
 		if (!file.is_open()) {
 			return Minitel::State::MENU;
 		}
-		size_t CONTENT_WIDTH = 38;
-		// size_t CONTENT_WIDTH = COLS_VIDEOTEX - m.marginX * 2;
+		// std::string lastLine, prev;
+		// while (std::getline(file, lastLine)) {
+		// 	if (!lastLine.empty() && lastLine.back() == '\r')
+		//       		lastLine.pop_back();
+		// }
+		std::string lastLine, line;
+		while (std::getline(file, line)) {
+			lastLine = line;  // keep updating
+			if (!lastLine.empty() && lastLine.back() == '\r')
+				lastLine.pop_back();
+		}
+		if (!line.empty())   // catch the no-trailing-newline case
+			lastLine = line;
 
+		std::cout << "last line is '" << lastLine << "'\n";
+		file.clear(); // ← clear EOF/fail state HERE, before writing
+		// size_t len = lastLine.length();
+		size_t CONTENT_WIDTH = 38;
+
+		// size_t col = len + 1;
 		size_t col = m.cursorX;
+		if (lastLine.length() >= CONTENT_WIDTH) {
+			file << "\r\n";
+			std::cout << "cadavre: add EOF to file\n";
+		}
+		std::cout << "cadavre: start at col: " << col << "\n";
 
 		for (size_t i = 0; i < input.length(); ++i)
 		{
-			if (col >= CONTENT_WIDTH + 1) {
+			if (col > CONTENT_WIDTH) {
 				file << "\r\n";  // end space + newline
 				col = 1;
 			}
 			file << input[i];
+			if (file.fail()) {
+				std::cerr << "Write failed at char " << i << "\n";
+			}
 			col++;
 		}
 		file.flush();
@@ -74,6 +101,6 @@ Minitel::State CadavrePage::handle_input(const std::string& input) {
 		// 	m.ascii_noise(0);
 		// }
 
-		return Minitel::State::HAZARDOUS;
+		return m.redirect_display(endState);
 }
 

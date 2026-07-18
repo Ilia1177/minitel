@@ -127,77 +127,7 @@
 //     return data.fullResponse;
 // }
 //
-void Minitel::ascii_noise(int amount) {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> rX(1, COLS_VIDEOTEX);
-	std::uniform_int_distribution<int> rY(1, ROWS_VIDEOTEX);
-	std::uniform_int_distribution<unsigned char> rChar(32, 127);
-	send(COFF);
-	for (int i = 0; i < amount; i++) {
-		update_cursor(rX(gen), rY(gen), 0);
-		writeByte(rChar(gen));
-	}
-	update_cursor(rX(gen), rY(gen), 0);
-	send(CON);
-}
 
-Minitel::State Minitel::redirect_input(State state, const std::string& input) {
-	switch (state) {
-		case Minitel::State::MENU:
-			state = index->handle_input(input); break;
-		case Minitel::State::HAZARDOUS:
-			state = maze->handle_input(input); break;
-		case Minitel::State::STORY:
-			state = cadavre->handle_input(input); break;
-		case Minitel::State::EMAIL:
-			state = contact->handle_input(input); break;
-		case Minitel::State::FORTY2:
-			state = forty2->handle_input(input); break;
-		default:
-			return Minitel::State::MENU;
-	}
-	return state;
-}
-
-Minitel::State Minitel::redirect_display(State state, bool waiting) {
-	std::cout << "User get redirected.\n";
-	std::cout << "\tfrom   : " << get_state(_state) << "\n";
-	std::cout << "\tto     : " << get_state(state) << "\n";
-
-	if (waiting) {
-		update_cursor(COLS_VIDEOTEX / 2 - 11, ROWS_VIDEOTEX / 2, 0);
-		write_text(" -> redirect in ");
-		send(COFF);
-		for (int i = 9; i > 0; i--) {
-			write_text(std::to_string(i) + " sec ");
-			cursor_to(COLS_VIDEOTEX / 2 - 11 + 16, ROWS_VIDEOTEX / 2);
-			sleep(1);
-		}
-		send(CON);
-	}
-
-	switch (state) {
-		case Minitel::State::MENU:
-			index->display();
-			break;
-		case Minitel::State::HAZARDOUS:
-			maze->display();
-			break;
-		case Minitel::State::STORY:
-			cadavre->display();
-			break;
-		case Minitel::State::EMAIL:
-			contact->display();
-			break;
-		case Minitel::State::FORTY2:
-			forty2->display();
-			break;
-		default:
-			return Minitel::State::MENU;
-	}
-	return state;
-}
 
 // Minitel::State Minitel::index_page(State endState, const std::string& input)
 // {
