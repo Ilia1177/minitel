@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /*
-   Minitel1B_Hard - Fichier d'en-tête - Version du 5 mars 2023 à 21h27
-   Copyright 2016-2023 - Eric Sérandour
+   Minitel1B_Hard - Fichier d'en-tête - Version du 25 mars 2026 à 22h48
+   Copyright 2016-2026 - Eric Sérandour
    https://entropie.org/3615/
    
    Remerciements à :
@@ -31,8 +31,13 @@
 #ifndef MINITEL1B_H  // Si la constante MINITEL1B_H n'est
 #define MINITEL1B_H  // pas définie, on la définit.
 
-#include <cstdint>
-#include "HardwareSerial.h"
+#include "HardWareSim.h"
+// Selon la version d'Arduino
+// #if defined(ARDUINO) && ARDUINO >= 100
+// #include "Arduino.h"
+// #else
+// #include "WProgram.h"
+// #endif  // Fin Si (ARDUINO)
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -264,8 +269,15 @@ class Minitel
 public:
   Minitel(HardwareSerial& serial);
   
+  #if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+  Minitel(HardwareSerial& serial, int8_t rxPin, int8_t txPin);
+  #endif
+  
+  // added by Nil POLACK
+  // int getFileDescriptor() {
+  //  return mySerial.getFileDescriptor();
+  // }
   // Ecrire un octet, un mot ou un code de 4 octets maximum / Lire un octet
-  // void writeByte(uint8_t b);
   void writeByte(byte b);
   void writeWord(word w);
   void writeCode(unsigned long code);  // 4 octets maximum
@@ -335,10 +347,8 @@ public:
 
   // Contenu
   void attributs(byte attribut);
-  // void print(String chaine);  // UTF-8 => Codes Minitel
-  void print(std::string chaine);  // UTF-8 => Codes Minitel
-  // void println(String chaine);
-  void println(std::string chaine);
+  void print(String chaine);  // UTF-8 => Codes Minitel
+  void println(String chaine);
   void println();
   void printChar(char caractere);  // Caractère du jeu G0 exceptés ceux codés 0x60, 0x7E, 0x7F.
   // void printDiacriticChar(unsigned char caractere);  // Caractère avec accent, tréma ou cédille.  // Obsolète depuis le 26/02/2023

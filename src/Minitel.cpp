@@ -234,14 +234,14 @@ int Minitel::configure_serial(const char* port) {
 size_t Minitel::dial_menu(const std::vector<std::string>& menu)
 {
 	int margin = 4;
-	if (g_interrupt)
+	if (g_signal)
 		return 0;
 	int choice = 0;
 	for (size_t i = 0; i < menu.size(); i++) {
 		std::cout << fit(" ", margin) << i + 1 << ". " << menu[i] << "\n";
 	}
 	std::cout << "\n";
-	while (!g_interrupt) {
+	while (!g_signal) {
 		if (!user_line(fit(" ", margin) + "Select: ", choice, true))
 			return 0;
 		if (choice <= 0 || static_cast<size_t>(choice) > menu.size() + 1) {

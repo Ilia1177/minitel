@@ -1,6 +1,6 @@
 NAME 	= 	minitel
 
-CXXFLAGS	=	-Wall -Wextra -Werror -std=c++17 -g -O0
+CXXFLAGS	=	-Wall -Wextra -Werror -Wno-logical-not-parentheses -std=c++17 -g -O0
 ASANFLAGS   = -fsanitize=address
 CXX 		=	c++
 # Homebrew paths for macOS
@@ -10,27 +10,19 @@ ifneq ($(BREW_PREFIX),)
     LDFLAGS += -L$(BREW_PREFIX)/lib
 endif
 
-LDFLAGS += -lpng -lcurl
+LDFLAGS += -lcurl
 INCS            += -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
 
-LDFLAGS += -L/usr/local/lib -lhpdf -L$(HOME)/.local/lib -lhzd -lfreetype
+# LDFLAGS += -L/usr/local/lib -lhpdf -L$(HOME)/.local/lib -lhzd -lfreetype
 
 SRC_DIR = src/
 INC_DIR = inc/
 OBJ_DIR	= .objs/
 INCS            += -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
-SRCS	= 	main.cpp\
-			server.cpp\
-			story.cpp\
-			Minitel.cpp\
-			tools.cpp\
-			ThermalPrinter.cpp\
-			page/APage.cpp\
-			page/IndexPage.cpp\
-			page/ContactPage.cpp\
-			page/MazePage.cpp\
-			page/CadavrePage.cpp\
-			page/Forty2Page.cpp\
+SRCS	= 	main.cpp \
+			Minitel1B_Hard.cpp \
+			client.cpp \
+			server.cpp \
 
 SRCS 	:= 	$(addprefix $(SRC_DIR), $(SRCS))
 OBJS	=	$(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
