@@ -12,17 +12,19 @@ int main(int ac, char *av[])
 {
     // HardwareSerial serialPort;
 	Server server;
+	int status;
 	if (ac < 2) {
 		std::cerr << "Must have an argument: path of device\n";
 		return 1;
 	}
 	signal(SIGINT, signal_handler);
-
 	for(int i = 0; i < ac; i++) {
 		server.add_client(av[i + 1]);
 	}
-	server.listen();
+	status = server.listen();
+	std::cout << "Server stop with status: " << status << std::endl;
 
+	return status;
     // minitel.newScreen();
     // minitel.print("Bonjour Minitel");
     //

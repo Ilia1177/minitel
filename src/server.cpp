@@ -36,6 +36,11 @@ int Server::listen()
 	if (_clients.size() < 1) {
 		return 1;
 	}
+	// Use to listen the server stdin
+	// struct pollfd stdinPfd{};
+	// stdinPfd.fd = STDIN_FILENO;
+	// stdinPfd.events = POLLIN;
+	// _pfds.push_back(stdinPfd);
 	_rbuff.clear();
 	std::cout << "start Listening clients\n";
     while (!g_signal) 
@@ -47,7 +52,12 @@ int Server::listen()
         } else if (ret == 0) {
             continue;
         }
-
+		// stdin is always pfds[0]
+		// if (_pfds[0].revents & POLLIN) {
+		// 	std::string line;
+		// 	std::getline(std::cin, line);
+		// 	handleServerCommand(line);
+		// }
 		for(size_t i = 0; i < _pfds.size(); i++) 
 		{
 			if (_pfds[i].revents & POLLIN) {
