@@ -31,7 +31,7 @@
 #ifndef MINITEL1B_H  // Si la constante MINITEL1B_H n'est
 #define MINITEL1B_H  // pas définie, on la définit.
 
-#include "HardWareSim.h"
+#include "HardwareSim.h"
 // Selon la version d'Arduino
 // #if defined(ARDUINO) && ARDUINO >= 100
 // #include "Arduino.h"

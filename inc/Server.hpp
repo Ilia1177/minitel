@@ -16,6 +16,9 @@ class Server
     int handle_input(Client&);
     int add_client(const std::string serial_path);
 
+	void init_machine(Client &client);
+	void main_page(Client &client);
+	int main_page_input(Client &client);
   private:
     std::vector<Client*>       _clients;
     std::vector<struct pollfd> _pfds;

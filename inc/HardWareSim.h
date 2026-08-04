@@ -48,61 +48,20 @@ public:
 
 class HardwareSerial {
 public:
-    bool openPort(const char* device) {
-        _fd = ::open(device, O_RDWR | O_NOCTTY);
-        return _fd >= 0;
-    }
+    bool openPort(const char* device);
 
-    void begin(unsigned long baud, int /*config*/ = 0) {
-        termios tty{};
-        tcgetattr(_fd, &tty);
-        cfmakeraw(&tty);
-        speed_t s = baudToSpeed(baud);
-        cfsetispeed(&tty, s);
-        cfsetospeed(&tty, s);
-        tty.c_cflag |= (CLOCAL | CREAD);
-        tty.c_cflag |= PARENB;
-        tty.c_cflag &= ~PARODD;
-        tty.c_cflag &= ~CSTOPB;
-        tty.c_cflag &= ~CSIZE;
-        tty.c_cflag |= CS7;
-        tty.c_cc[VMIN]  = 0;
-        tty.c_cc[VTIME] = 5;
-        tcsetattr(_fd, TCSANOW, &tty);
-    }
+    void begin(unsigned long baud, int /*config*/ = 0);
+    void end();
+    size_t write(uint8_t b);
+    int available();
+    int read();
+    explicit operator bool() const;
 
-    void end() {}
-
-    size_t write(uint8_t b) { return ::write(_fd, &b, 1); }
-
-    int available() {
-        int n = 0;
-		if (ioctl(_fd, FIONREAD, &n) < 0) {
-			return 0;
-		}
-        return n;
-    }
-
-    int read() {
-        uint8_t b;
-        return (::read(_fd, &b, 1) == 1) ? b : -1;
-    }
-
-    explicit operator bool() const { return _fd >= 0; }
-
-	int getFileDescriptor() {return _fd;}
+	int getFileDescriptor();
 
 private:
     int _fd = -1;
-    speed_t baudToSpeed(unsigned long baud) {
-        switch (baud) {
-            case 300:  return B300;
-            case 1200: return B1200;
-            case 4800: return B4800;
-            case 9600: return B9600;
-            default:   return B1200;
-        }
-    }
+    speed_t baudToSpeed(unsigned long baud);
 };
 
 #endif

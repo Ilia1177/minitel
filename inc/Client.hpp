@@ -2,7 +2,10 @@
 #define CLIENT_HPP
 
 #include "Minitel1B_Hard.h"
-
+enum {
+	MAIN_PAGE = 1,
+	GAME1	=	2
+};
 class Client
 {
   public:
@@ -12,8 +15,8 @@ class Client
     void           init(HardwareSerial& s);
     int            index;
     HardwareSerial serial;
-    Minitel*       minitel;     // Minitel takes HardwareSerial& in its constructor
-    int            currentPage; // whatever state you need per client
+    Minitel*       minitel;
+    int            currentPage;
 };
 
 #endif

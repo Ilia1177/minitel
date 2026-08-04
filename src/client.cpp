@@ -3,7 +3,7 @@
 Client::Client(): minitel(nullptr) {}
 
 Client::Client(HardwareSerial& s): serial(s) {
-	this->minitel = new Minitel(s);
+	this->minitel = new Minitel(this->serial);
 }
 
 void Client::init(HardwareSerial& s) {
@@ -14,4 +14,6 @@ void Client::init(HardwareSerial& s) {
 Client::~Client() {
 	if (minitel)
 		delete minitel;
+	if (serial.getFileDescriptor() > 0)
+		::close(serial.getFileDescriptor());
 }

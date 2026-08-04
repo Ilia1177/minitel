@@ -21,6 +21,7 @@ OBJ_DIR	= .objs/
 INCS            += -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
 SRCS	= 	main.cpp \
 			Minitel1B_Hard.cpp \
+			HardwareSim.cpp \
 			client.cpp \
 			server.cpp \
 
