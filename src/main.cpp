@@ -18,8 +18,10 @@ int main(int ac, char *av[])
 		return 1;
 	}
 	signal(SIGINT, signal_handler);
-	for(int i = 0; i < ac; i++) {
-		server.add_client(av[i + 1]);
+	std::cout << "adding new client...\n";
+	for(int i = 1; i < ac; i++) {
+		server.add_client(av[i]);
+		std::cout << "Add new client: " << av[i] << "\n";
 	}
 	status = server.listen();
 	std::cout << "Server stop with status: " << status << std::endl;
