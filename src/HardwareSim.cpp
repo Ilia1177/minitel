@@ -1,78 +1,93 @@
 #include "HardwareSim.h"
+#include <stdexcept>
 
 bool HardwareSerial::openPort(const char* device)
 {
     _fd = ::open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
-	if (_fd < 0)
-		std::cerr << "Fail opening port: " << strerror(errno) << "\n";
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
     return _fd >= 0;
 }
-
-// void HardwareSerial::begin(unsigned long baud, int config)
-// {
-//     (void)config;
-//     termios tty{};
-//     tcgetattr(_fd, &tty);
-//     cfmakeraw(&tty);
-//     speed_t s = baudToSpeed(baud);
-//     cfsetispeed(&tty, s);
-//     cfsetospeed(&tty, s);
-//     tty.c_cflag |= (CLOCAL | CREAD);
-//     tty.c_cflag |= PARENB;
-//     tty.c_cflag &= ~PARODD;
-//     tty.c_cflag &= ~CSTOPB;
-//     tty.c_cflag &= ~CSIZE;
-//     tty.c_cflag |= CS7;
-//     tty.c_cc[VMIN] = 0;
-//     tty.c_cc[VTIME] = 5;
-//     tcsetattr(_fd, TCSANOW, &tty);
-// }
 
 void HardwareSerial::begin(unsigned long baud, int config)
 {
     (void)config;
 
     termios tty{};
-    tcgetattr(_fd, &tty);
+
+    if (tcgetattr(_fd, &tty) < 0) {
+        perror("1. tcgetattr");
+        return;
+    }
 
     cfmakeraw(&tty);
 
     speed_t s = baudToSpeed(baud);
-    cfsetispeed(&tty, s);
-    cfsetospeed(&tty, s);
+	if (cfsetispeed(&tty, s) < 0) {
+		perror("cfsetispeed");
+		return;
+	}
 
-    tty.c_cflag |= (CLOCAL | CREAD);
+	if (cfsetospeed(&tty, s) < 0) {
+		perror("cfsetospeed");
+		return;
+	}
 
-    // Minitel: 7E1
-    tty.c_cflag |= PARENB;
-    tty.c_cflag &= ~PARODD;
-    tty.c_cflag &= ~CSTOPB;
-    tty.c_cflag &= ~CSIZE;
-    tty.c_cflag |= CS7;
+	tty.c_cflag &= ~(CSIZE | PARODD | CSTOPB);
+	tty.c_cflag |= CS7 | PARENB;
+	tty.c_cflag |= CLOCAL | CREAD;
 
-    // Completely non-blocking reads
     tty.c_cc[VMIN]  = 0;
     tty.c_cc[VTIME] = 0;
 
-    tcsetattr(_fd, TCSANOW, &tty);
+    if (tcsetattr(_fd, TCSANOW, &tty) < 0) {
+        perror("2. tcsetattr");
+        return;
+    }
 
-    // Also make the file descriptor non-blocking
+    // Give the serial adapter a DTR transition
+    int modem = TIOCM_DTR;
+
+    if (ioctl(_fd, TIOCMBIC, &modem) < 0)
+        perror("clear DTR");
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+    if (ioctl(_fd, TIOCMBIS, &modem) < 0)
+        perror("set DTR");
+
+    // Small delay for the Minitel interface to settle
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+    // Optional: make sure no old bytes are waiting
+    tcflush(_fd, TCIOFLUSH);
+    // Optional: make fd non-blocking
     int flags = fcntl(_fd, F_GETFL, 0);
     fcntl(_fd, F_SETFL, flags | O_NONBLOCK);
+
+	uint8_t sync[16] = {0};
+	::write(_fd, sync, sizeof(sync));
+	std::this_thread::sleep_for(std::chrono::milliseconds(300));
+	tcflush(_fd, TCIFLUSH);
 }
 
 void HardwareSerial::end() {}
 
 size_t HardwareSerial::write(uint8_t b)
 {
-    return ::write(_fd, &b, 1);
+	size_t r = ::write(_fd, &b, 1);
+    if(r < 0) {
+		std::string er =  "Error write: " + std::string(strerror(errno));
+		throw std::runtime_error(er);
+	}
+	return r;
 }
 
 int HardwareSerial::available()
 {
     int n = 0;
     if (ioctl(_fd, FIONREAD, &n) < 0) {
-        return 0;
+		std::string er =  "Error ioctl: " + std::string(strerror(errno));
+		throw std::runtime_error(er);
     }
     return n;
 }
@@ -80,7 +95,12 @@ int HardwareSerial::available()
 int HardwareSerial::read()
 {
     uint8_t b;
-    return (::read(_fd, &b, 1) == 1) ? b : -1;
+
+	if (::read(_fd, &b, 1) < 0) {
+		std::string er = "Error read: " + std::string(strerror(errno));
+		throw std::runtime_error(er);
+	}
+	return b;
 }
 
 HardwareSerial::operator bool() const 
@@ -88,7 +108,7 @@ HardwareSerial::operator bool() const
 	return _fd >= 0; 
 }
 
-int HardwareSerial::getFileDescriptor() 
+int HardwareSerial::getFd() 
 {
 	return _fd; 
 }

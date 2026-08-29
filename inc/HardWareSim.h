@@ -49,7 +49,6 @@ public:
 class HardwareSerial {
 public:
     bool openPort(const char* device);
-
     void begin(unsigned long baud, int /*config*/ = 0);
     void end();
     size_t write(uint8_t b);
@@ -57,7 +56,7 @@ public:
     int read();
     explicit operator bool() const;
 
-	int getFileDescriptor();
+	int getFd();
 
 private:
     int _fd = -1;

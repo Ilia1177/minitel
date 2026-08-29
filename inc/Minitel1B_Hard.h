@@ -273,10 +273,6 @@ public:
   Minitel(HardwareSerial& serial, int8_t rxPin, int8_t txPin);
   #endif
   
-  // added by Nil POLACK
-  // int getFileDescriptor() {
-  //  return mySerial.getFileDescriptor();
-  // }
   // Ecrire un octet, un mot ou un code de 4 octets maximum / Lire un octet
   void writeByte(byte b);
   void writeWord(word w);
@@ -347,6 +343,7 @@ public:
 
   // Contenu
   void attributs(byte attribut);
+  void println00(String chaine); // added by Ilia1177
   void print(String chaine);  // UTF-8 => Codes Minitel
   void println(String chaine);
   void println();

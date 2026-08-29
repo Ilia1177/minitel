@@ -726,6 +726,18 @@ void Minitel::print(String chaine)
 }
 /*--------------------------------------------------------------------*/
 
+// added by Ilia1177
+// Imprime une chaine de caracteres sur la ligne 00 
+void Minitel::println00(String chaine)
+{
+	writeByte(US);
+	writeByte(0x40);
+	writeByte(0x41);
+	print(chaine);
+	writeByte(LF);
+}
+/*--------------------------------------------------------------------*/
+
 void Minitel::println(String chaine)
 {
     print(chaine);
@@ -735,6 +747,7 @@ void Minitel::println(String chaine)
         moveCursorReturn(1);
     }
 }
+
 /*--------------------------------------------------------------------*/
 
 void Minitel::println()
@@ -1566,6 +1579,8 @@ byte Minitel::workingAiguillage(byte module)
     // b0 : écran
     // L'octet de statut contient également l'état de la ressource que constitue le module lui-même
     // (0 : module bloqué ; 1 : module actif)
+	
+	unsigned long start = millis();
     while (!mySerial)
         ;                    // On attend que le port soit sur écoute.
     unsigned long trame = 0; // 32 bits = 4 octets
@@ -1575,6 +1590,9 @@ byte Minitel::workingAiguillage(byte module)
         if (mySerial.available() > 0) {
             trame = (trame << 8) + readByte();
             // Serial.println(trame, HEX);
+        }
+        if (millis() - start > 2000) {
+            return 0xFF;
         }
     }
     while (!mySerial.available() > 0)
