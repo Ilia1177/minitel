@@ -29,6 +29,12 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "Minitel1B_Hard.h"
+#include <png.h>
+#include <cstdio>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <cmath>
 
 ////////////////////////////////////////////////////////////////////////
 /*
@@ -1635,5 +1641,187 @@ unsigned long Minitel::getCursorXY()
         }
     }
     return trame;
+}
+/*--------------------------------------------------------------------*/
+
+bool Minitel::loadGrayscalePng(const std::string& path, std::vector<uint8_t>& out, int& w, int& h)
+{
+    FILE* fp = fopen(path.c_str(), "rb");
+    if (!fp) return false;
+
+    uint8_t sig[8];
+    if (fread(sig, 1, 8, fp) != 8) { fclose(fp); return false; }
+    if (png_sig_cmp(sig, 0, 8) != 0) { fclose(fp); return false; }
+
+    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (!png) { fclose(fp); return false; }
+    png_infop info = png_create_info_struct(png);
+    if (!info) { png_destroy_read_struct(&png, nullptr, nullptr); fclose(fp); return false; }
+
+    if (setjmp(png_jmpbuf(png))) {
+        png_destroy_read_struct(&png, &info, nullptr);
+        fclose(fp);
+        return false;
+    }
+
+    png_init_io(png, fp);
+    png_set_sig_bytes(png, 8);
+    png_read_info(png, info);
+
+    w = (int)png_get_image_width(png, info);
+    h = (int)png_get_image_height(png, info);
+    png_byte color_type = png_get_color_type(png, info);
+    png_byte bit_depth  = png_get_bit_depth(png, info);
+
+    if (bit_depth == 16) png_set_strip_16(png);
+    if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png);
+    if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_expand_gray_1_2_4_to_8(png);
+    if (png_get_valid(png, info, PNG_INFO_tRNS)) png_set_tRNS_to_alpha(png);
+    if (color_type & PNG_COLOR_MASK_ALPHA) png_set_strip_alpha(png);
+    // Convert RGB to gray if needed
+    if (color_type & PNG_COLOR_MASK_COLOR) png_set_rgb_to_gray_fixed(png, 1, -1, -1);
+
+    png_read_update_info(png, info);
+
+    size_t row_bytes = png_get_rowbytes(png, info);
+    // After conversion row_bytes should equal w (1 byte per pixel)
+    if (row_bytes == (size_t)w) {
+        out.resize((size_t)w * (size_t)h);
+        std::vector<png_bytep> rows(h);
+        for (int y = 0; y < h; y++) rows[y] = &out[(size_t)y * (size_t)w];
+        png_read_image(png, rows.data());
+    } else {
+        // Fallback: assume RGB (3 bytes per pixel) – convert manually
+        out.resize((size_t)w * (size_t)h);
+        std::vector<uint8_t> row(row_bytes);
+        for (int y = 0; y < h; y++) {
+            png_read_row(png, row.data(), nullptr);
+            for (int x = 0; x < w; x++) {
+                uint8_t gray = 0;
+                if (row_bytes >= (size_t)(x * 3 + 3)) {
+                    uint8_t r = row[x * 3 + 0];
+                    uint8_t g = row[x * 3 + 1];
+                    uint8_t b = row[x * 3 + 2];
+                    gray = (uint8_t)(0.299 * r + 0.587 * g + 0.114 * b);
+                } else if ((size_t)w <= row_bytes) {
+                    gray = row[x];
+                }
+                out[(size_t)y * (size_t)w + (size_t)x] = gray;
+            }
+        }
+        png_read_end(png, nullptr);
+        png_destroy_read_struct(&png, &info, nullptr);
+        fclose(fp);
+        return true;
+    }
+
+    png_read_end(png, nullptr);
+    png_destroy_read_struct(&png, &info, nullptr);
+    fclose(fp);
+    return true;
+}
+
+bool Minitel::displayPng(const std::string& path, int threshold)
+{
+    return displayPng(path, 40, 24, threshold);
+}
+
+bool Minitel::displayPng(const std::string& path, int maxCellsW, int maxCellsH, int threshold)
+{
+    if (maxCellsW <= 0) maxCellsW = 40;
+    if (maxCellsH <= 0) maxCellsH = 24;
+    if (maxCellsW > 40) maxCellsW = 40;
+    if (maxCellsH > 24) maxCellsH = 24;
+    if (threshold < 0) threshold = 0;
+    if (threshold > 255) threshold = 255;
+
+    std::vector<uint8_t> img;
+    int w = 0, h = 0;
+    if (!loadGrayscalePng(path, img, w, h)) 
+		return false;
+    if (w <= 0 || h <= 0 || img.empty())
+		return false;
+
+    int targetPxW = maxCellsW * 2;
+    int targetPxH = maxCellsH * 3;
+
+    int srcW = w;
+    int srcH = h;
+    std::vector<uint8_t> scaled;
+
+    // Downscale with nearest-neighbor if image exceeds target
+    if (srcW > targetPxW || srcH > targetPxH) {
+		fprintf(stdout, "Rescale\n");
+        double scale = std::min(targetPxW / (double)srcW, targetPxH / (double)srcH);
+        int newW = std::max(2, (int)std::floor(srcW * scale));
+        int newH = std::max(3, (int)std::floor(srcH * scale));
+        // Ensure at least fitting within target
+        if (newW > targetPxW) newW = targetPxW;
+        if (newH > targetPxH) newH = targetPxH;
+        scaled.resize((size_t)newW * (size_t)newH);
+        for (int y = 0; y < newH; y++) {
+            int sy = (int)((y * (double)srcH) / newH);
+            if (sy >= srcH) sy = srcH - 1;
+            for (int x = 0; x < newW; x++) {
+                int sx = (int)((x * (double)srcW) / newW);
+                if (sx >= srcW) sx = srcW - 1;
+                scaled[(size_t)y * (size_t)newW + (size_t)x] = img[(size_t)sy * (size_t)srcW + (size_t)sx];
+            }
+        }
+        img.swap(scaled);
+        w = newW;
+        h = newH;
+    }
+
+    int cellsW = (w + 1) / 2;
+    int cellsH = (h + 2) / 3;
+    if (cellsW > maxCellsW) cellsW = maxCellsW;
+    if (cellsH > maxCellsH) cellsH = maxCellsH;
+    // Pad image to cellsW*2 x cellsH*3 with white (255) for incomplete edge cells
+    int paddedW = cellsW * 2;
+    int paddedH = cellsH * 3;
+    if (paddedW != w || paddedH != h) {
+		fprintf(stdout, "padding\n");
+        std::vector<uint8_t> padded((size_t)paddedW * (size_t)paddedH, 255);
+        for (int y = 0; y < h && y < paddedH; y++) {
+            for (int x = 0; x < w && x < paddedW; x++) {
+                padded[(size_t)y * (size_t)paddedW + (size_t)x] = img[(size_t)y * (size_t)w + (size_t)x];
+            }
+        }
+        img.swap(padded);
+        w = paddedW;
+        h = paddedH;
+    }
+
+    int startX = (40 - cellsW) / 2 + 1;
+    int startY = (24 - cellsH) / 2 + 1;
+    if (startX < 1) startX = 1;
+    if (startY < 1) startY = 1;
+
+    // Enter G1 mosaic, emit centered
+    for (int cy = 0; cy < cellsH; cy++) {
+        newXY(startX, startY + cy);
+    	graphicMode();
+        for (int cx = 0; cx < cellsW; cx++) {
+            unsigned char bits = 0;
+            auto pix = [&](int dx, int dy, int bit) {
+                int px = cx * 2 + dx;
+                int py = cy * 3 + dy;
+                if (px < w && py < h && img[(size_t)py * (size_t)w + (size_t)px] < (uint8_t)threshold)
+                    bits |= (1 << bit);
+            };
+            pix(0, 0, 0); // TL
+            pix(1, 0, 1); // TR
+            pix(0, 1, 2); // ML
+            pix(1, 1, 3); // MR
+            pix(0, 2, 4); // BL
+            pix(1, 2, 5); // BR
+            unsigned char code = (unsigned char)(0x20 + bits);
+            if (code == 0x7F) code = 0x5F;
+            writeByte(code);
+        }
+    }
+    textMode();
+    return true;
 }
 /*--------------------------------------------------------------------*/

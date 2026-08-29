@@ -184,7 +184,7 @@ int Server::main_page_input(Client* client)
         game_one(client);
         break;
     case '3':
-        printf("3\n");
+		client->displayPng("qrcode.png", 128);
         break;
     case '4':
         printf("4\n");

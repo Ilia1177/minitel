@@ -32,6 +32,8 @@
 #define MINITEL1B_H  // pas définie, on la définit.
 
 #include "HardwareSim.h"
+#include <string>
+#include <vector>
 // Selon la version d'Arduino
 // #if defined(ARDUINO) && ARDUINO >= 100
 // #include "Arduino.h"
@@ -357,6 +359,10 @@ public:
   void graphic(byte b);  // Voir la ligne ci-dessus.
   void repeat(int n);  // Permet de répéter le dernier caractère visualisé avec les attributs courants de la position active d'écriture.
   void bip();  // Bip sonore
+
+  // PNG -> G1 mosaic (B&W threshold, centered). Returns false on load error.
+  bool displayPng(const std::string& path, int threshold = 128);
+  bool displayPng(const std::string& path, int maxCellsW, int maxCellsH, int threshold = 128);
   
   // Géométrie
   void rect(int x1, int y1, int x2, int y2);  // Rectangle défini par 2 points.
@@ -397,6 +403,9 @@ private:
   byte workingModem();
   
   unsigned long getCursorXY();
+
+  // PNG helper (private)
+  bool loadGrayscalePng(const std::string& path, std::vector<uint8_t>& out, int& w, int& h);
 };
 
 ////////////////////////////////////////////////////////////////////////

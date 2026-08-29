@@ -12,6 +12,10 @@ class Client
     ~Client();
     std::string    current_page_str();
     void           init(HardwareSerial& s);
+    // PNG -> G1 mosaic (centered, B&W threshold). Delegates to Minitel::displayPng
+    bool           displayPng(const std::string& path, int threshold = 128);
+    bool           displayPng(const std::string& path, int maxCellsW, int maxCellsH, int threshold = 128);
+    bool           displayPngCentered(const std::string& path, int threshold = 128);
     int            index;
     HardwareSerial serial;
     Minitel*       minitel;

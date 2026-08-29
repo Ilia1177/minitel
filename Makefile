@@ -10,6 +10,15 @@ ifneq ($(BREW_PREFIX),)
     LDFLAGS += -L$(BREW_PREFIX)/lib
 endif
 
+# libpng via pkg-config (Linux + macOS Homebrew)
+PNG_CFLAGS := $(shell pkg-config --cflags libpng 2>/dev/null)
+PNG_LIBS   := $(shell pkg-config --libs libpng 2>/dev/null)
+ifeq ($(PNG_LIBS),)
+    PNG_LIBS := -lpng
+endif
+INCS += $(PNG_CFLAGS)
+LDFLAGS += $(PNG_LIBS)
+
 LDFLAGS += -lcurl
 INCS            += -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
 
