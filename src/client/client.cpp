@@ -31,20 +31,20 @@ void Client::init(HardwareSerial& s) {
 	serial = s;
 }
 
-bool Client::displayPng(const std::string& path, int threshold) {
-	if (!minitel) return false;
-	return minitel->displayPng(path, threshold);
-}
+// bool Client::displayPng(const std::string& path, int threshold) {
+// 	if (!minitel) return false;
+// 	return minitel->displayPng(path, threshold);
+// }
+//
+// bool Client::displayPng(const std::string& path, int maxCellsW, int maxCellsH, int threshold) {
+// 	if (!minitel) return false;
+// 	return minitel->displayPng(path, maxCellsW, maxCellsH, threshold);
+// }
 
-bool Client::displayPng(const std::string& path, int maxCellsW, int maxCellsH, int threshold) {
-	if (!minitel) return false;
-	return minitel->displayPng(path, maxCellsW, maxCellsH, threshold);
-}
-
-bool Client::displayPngCentered(const std::string& path, int threshold) {
-	if (!minitel) return false;
-	return minitel->displayPng(path, threshold);
-}
+// bool Client::displayPngCentered(const std::string& path, int threshold) {
+// 	if (!minitel) return false;
+// 	return minitel->displayPng(path, threshold);
+// }
 
 Client::~Client() {
 	minitel->echo(true);

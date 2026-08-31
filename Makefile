@@ -20,19 +20,22 @@ INCS += $(PNG_CFLAGS)
 LDFLAGS += $(PNG_LIBS)
 
 LDFLAGS += -lcurl
-INCS            += -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
+INCS	+= -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
 
 # LDFLAGS += -L/usr/local/lib -lhpdf -L$(HOME)/.local/lib -lhzd -lfreetype
 
 SRC_DIR = src/
 INC_DIR = inc/
 OBJ_DIR	= .objs/
-INCS            += -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
+INCS            += -I$(INC_DIR)/client -I$(INC_DIR)/minitel -I$(INC_DIR)/server -I/usr/local/include -I$(HOME)/.local/include
 SRCS	= 	main.cpp \
-			Minitel1B_Hard.cpp \
-			HardwareSim.cpp \
-			client.cpp \
-			server.cpp \
+			minitel/Minitel1B_Hard.cpp \
+			minitel/HardwareSim.cpp \
+			client/client.cpp \
+			server/server.cpp \
+			server/connexion_page.cpp \
+			server/risographie_page.cpp \
+			server/main_page.cpp \
 
 SRCS 	:= 	$(addprefix $(SRC_DIR), $(SRCS))
 OBJS	=	$(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
