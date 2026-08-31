@@ -1,7 +1,4 @@
-*.png
 .cache
 .objs
-*.txt
 !ascii/*
 DS_Store
-minitel
