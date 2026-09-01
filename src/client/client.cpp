@@ -14,7 +14,7 @@ std::string Client::current_page_str()
 	switch(currentPage) {
 		case MAIN_PAGE:
 			return "main page";
-		case GAME1:
+		case RISO:
 			return "game one";
 		default:
 			return "no know state";
@@ -45,8 +45,16 @@ void Client::init(HardwareSerial& s) {
 // 	if (!minitel) return false;
 // 	return minitel->displayPng(path, threshold);
 // }
+#include "Pty.hpp"
+#include "TermScreen.hpp"
+void Client::killShell()
+{
+    if (pty)  { pty->close_pty(); delete pty;  pty  = nullptr; }
+    if (term) { delete term; term = nullptr; }
+}
 
 Client::~Client() {
+	killShell();
 	minitel->echo(true);
 	minitel->newScreen(); 
 	minitel->println("Deconnexion.");

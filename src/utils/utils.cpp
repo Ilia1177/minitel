@@ -1,4 +1,5 @@
-#include "server.hpp"
+#include "Server.hpp"
+#include <fstream>
 
 void machine_print_infos(Client* client)
 {
@@ -40,7 +41,7 @@ int print_file(Client* client, const std::string &path)
 	std::ifstream fichier;
 	std::string ligne;
 	Minitel* machine;
-	byte caractere;
+	// byte caractere;
 
 	machine = client->minitel;
 	fichier.open(path);
@@ -53,4 +54,16 @@ int print_file(Client* client, const std::string &path)
 	}
 	fichier.close();
 	return 0;
+}
+
+#include "Pty.hpp"
+#include "TermScreen.hpp"
+void renderToMinitel(Minitel* m, TermScreen& screen)
+{
+    auto diff = screen.render();
+    for (auto& [x, y, ch] : diff.cells) {
+        m->moveCursorXY(x + 1, y + 1); // Minitel coords are 1-based
+        m->printChar(ch);
+    }
+    m->moveCursorXY(diff.cx + 1, diff.cy + 1);
 }

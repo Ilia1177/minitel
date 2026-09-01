@@ -2,6 +2,8 @@
 #define SERVER_HPP
 
 #include "Client.hpp"
+#include "TermScreen.hpp"
+
 #define POLL_TIMEOUT 1000
 
 #define RED "\033[91m"
@@ -24,7 +26,7 @@ enum error_status {
 };
 
 extern int g_signal;
-
+struct PfdOwner { Client* client; bool isPty; };
 class Server
 {
   public:
@@ -34,7 +36,11 @@ class Server
 	int handle_server_command(std::string& cmd);
 	int handle_client_command(Client* client, std::string& cmd);
 
+
 	void log(std::string str, error_status status);
+
+void system_page(Client* client);
+void system_page_input(Client* client);
 	void connexion_page(Client* client);
 	int connexion_input(Client* client);
     void risographie_page(Client*);
@@ -49,7 +55,10 @@ class Server
   private:
     std::vector<Client*>       _clients;
     std::vector<struct pollfd> _pfds;
+
+	std::vector<PfdOwner> _owners; // parallel to _pfds[1:]
     std::string                _rbuff;
+	void rebuildPfds();
 };
 
 std::vector<std::string> parse_command(std::string& cmd);
@@ -57,5 +66,5 @@ char appendCodepoint(std::string& input, unsigned long code);
 void machine_print_infos(Client* client);
 void input_box(Client* client);
 int print_file(Client* client, const std::string &path);
-
+void renderToMinitel(Minitel* m, TermScreen& screen);
 #endif

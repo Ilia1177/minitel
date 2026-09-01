@@ -2,6 +2,28 @@
 
 #include <poll.h>
 
+void Server::rebuildPfds()
+{
+    std::vector<pollfd>   newPfds;
+    std::vector<PfdOwner> newOwners;
+
+    pollfd stdinPfd{STDIN_FILENO, POLLIN, 0};
+    newPfds.push_back(stdinPfd);
+
+    for (auto* c : _clients) {
+        pollfd serialPfd{c->serial.getFd(), POLLIN, 0};
+        newPfds.push_back(serialPfd);
+        newOwners.push_back({c, false});
+        if (c->pty && c->pty->active()) {
+            pollfd ptyPfd{c->pty->getFd(), POLLIN, 0};
+            newPfds.push_back(ptyPfd);
+            newOwners.push_back({c, true});
+        }
+    }
+    _pfds.swap(newPfds);
+    _owners.swap(newOwners);
+}
+
 char appendCodepoint(std::string& input, unsigned long code)
 {
     if (code == 0) return 0; // no key
@@ -73,7 +95,8 @@ int Server::add_client(const char* device_path)
     new_pfd.revents = 0;
     new_pfd.fd = new_client->serial.getFd();
     _clients.push_back(new_client);
-    _pfds.push_back(new_pfd);
+	rebuildPfds();
+    // _pfds.push_back(new_pfd);
 	log("New client added !", INFO);
     return 0;
 }
@@ -109,11 +132,15 @@ int Server::handle_client_input(Client* client)
 		case MAIN_PAGE:
 			ret = main_page_input(client);
 			break;
-		case GAME1:
+		case RISO:
 			ret = risographie_input(client);
 			break;
 		case CONNINFO:
 			ret = connexion_input(client);
+			break;
+		case SYSTEM:
+			system_page_input(client);
+			break;
 		default:
 			break;
     }
@@ -167,47 +194,118 @@ void Server::log(std::string str, error_status status)
 	// std::cout << ">" << std::flush;
 }
 
+//
+// // _pfds[0] contiens stdin pour ecouter les commandes du server
+// // _pfds s'étends entre 0 (stdin) et _clients.size (dernier client)
+// int Server::listen()
+// {
+//     if (_clients.size() < 1)
+//         return 1;
+//
+//     log("start Listening clients", INFO);
+//     while (!g_signal) {
+//         int ret = poll(_pfds.data(), _pfds.size(), POLL_TIMEOUT);
+//         if (ret < 0) {
+//             if (errno == EINTR)
+//                 continue;
+//             break;
+//         } else if (ret == 0) {
+//             continue;
+//         }
+//
+//         for (size_t i = 0; i < _pfds.size(); i++) {
+//             if (i == 0 && _pfds[0].revents & POLLIN) {
+//                 std::string line;
+//                 std::getline(std::cin, line);
+//                 handle_server_command(line);
+//             } else if (_pfds[i].revents & POLLIN) {
+// 				auto& owner = _owners[i - 1];
+// 				if (owner.isPty) {
+// 					char buf[512];
+// 					ssize_t n = read(_pfds[i].fd, buf, sizeof(buf));
+// 					if (n > 0) {
+// 						owner.client->term->feed(buf, n);
+// 						renderToMinitel(owner.client->minitel, *owner.client->term);
+// 					} else {
+// 						// shell exited
+// 						delete owner.client->pty; owner.client->pty = nullptr;
+// 						main_page(owner.client);
+// 						rebuildPfds();
+// 					}
+// 				} else {
+//                 	handle_client_input(_clients[i - 1]);
+// 				}
+//             } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+//                 log("Poll error on serial port", ERR);
+//                 break;
+//             }
+//             _pfds[i].revents = 0;
+//         }
+//     }
+//     return 0;
+// }
 
-// _pfds[0] contiens stdin pour ecouter les commandes du server
-// _pfds s'étends entre 0 (stdin) et _clients.size (dernier client)
 int Server::listen()
 {
-    if (_clients.size() < 1)
-        return 1;
+    if (_clients.size() < 1) return 1;
+    rebuildPfds();  // do this once up front, not just after system_page()
 
     log("start Listening clients", INFO);
     while (!g_signal) {
         int ret = poll(_pfds.data(), _pfds.size(), POLL_TIMEOUT);
-        if (ret < 0) {
-            if (errno == EINTR)
+        if (ret < 0) { if (errno == EINTR) continue; break; }
+        if (ret == 0) continue;
+
+        bool needsRebuild = false;
+        size_t n = _pfds.size(); // snapshot size, per review point 1
+
+        for (size_t i = 0; i < n; i++) {
+            if (i == 0) {
+                if (_pfds[0].revents & POLLIN) {
+                    std::string line;
+                    std::getline(std::cin, line);
+                    handle_server_command(line);
+                }
+                _pfds[0].revents = 0;
                 continue;
-            break;
-        } else if (ret == 0) {
-            continue;
-        }
-        for (size_t i = 0; i < _pfds.size(); i++) {
-            if (i == 0 && _pfds[0].revents & POLLIN) {
-                std::string line;
-                std::getline(std::cin, line);
-                handle_server_command(line);
-            } else if (_pfds[i].revents & POLLIN) {
-                if (handle_client_input(_clients[i - 1]))
-                    return 0;
+            }
+            PfdOwner& owner = _owners[i - 1];
+            if (_pfds[i].revents & POLLIN) {
+                if (owner.isPty) {
+                    char buf[512];
+                    ssize_t r = read(_pfds[i].fd, buf, sizeof(buf));
+                    if (r > 0) {
+                        owner.client->term->feed(buf, (size_t)r);
+                        renderToMinitel(owner.client->minitel, *owner.client->term);
+                    } else {
+                        owner.client->killShell(); // see fix 2
+                        main_page(owner.client);
+                        needsRebuild = true;
+                    }
+                } else {
+                    if (handle_client_input(owner.client))
+                        return 0;
+                }
             } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                log("Poll error on serial port", ERR);
-                break;
+                log("Poll error on fd", ERR);
+                if (owner.isPty) {
+                    owner.client->killShell();
+                    main_page(owner.client);
+                    needsRebuild = true;
+                }
             }
             _pfds[i].revents = 0;
         }
+        if (needsRebuild) rebuildPfds();
     }
     return 0;
 }
-
 int Server::handle_client_command(Client* client, std::string& command)
 {
 	std::vector<std::string> args = parse_command(command);
 	if(args.size() <= 0) {
 		command.clear();
+
 	} else if(args[0] == "menu") {
 		main_page(client);
 	} else if (args[0] == "game1") {

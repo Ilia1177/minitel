@@ -56,10 +56,9 @@ int Server::main_page_input(Client* client)
 		connexion_page(client);
         break;
     case '4':
-        printf("4\n");
         break;
     case '5':
-        printf("4\n");
+		system_page(client);
         break;
 	case '\r': case ENVOI:
 		handle_client_command(client, input);
