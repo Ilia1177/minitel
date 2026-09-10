@@ -39,13 +39,10 @@ SRCS	= 	main.cpp \
 			minitel/HardwareSim.cpp \
 			client/client.cpp \
 			server/server.cpp \
-			server/system_page.cpp \
 			server/connexion_page.cpp \
 			server/risographie_page.cpp \
 			server/main_page.cpp \
 			utils/utils.cpp \
-			term/TermScreen.cpp \
-			term/pty.cpp \
 
 SRCS 	:= 	$(addprefix $(SRC_DIR), $(SRCS))
 OBJS	=	$(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)

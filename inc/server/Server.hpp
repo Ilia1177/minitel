@@ -2,7 +2,6 @@
 #define SERVER_HPP
 
 #include "Client.hpp"
-#include "TermScreen.hpp"
 
 #define POLL_TIMEOUT 1000
 
@@ -26,6 +25,7 @@ enum error_status {
 };
 
 extern volatile sig_atomic_t g_signal;
+
 struct PfdOwner { Client* client; bool isPty; };
 class Server
 {
@@ -69,5 +69,4 @@ void input_box(Client* client);
 int print_file(Client* client, const std::string &path);
 
 std::string getline_number(const std::string &path, int nb);
-void renderToMinitel(Minitel* m, TermScreen& screen);
 #endif

@@ -73,15 +73,3 @@ int print_file(Client* client, const std::string &path)
 	fichier.close();
 	return 0;
 }
-
-#include "Pty.hpp"
-#include "TermScreen.hpp"
-void renderToMinitel(Minitel* m, TermScreen& screen)
-{
-    auto diff = screen.render();
-    for (auto& [x, y, ch] : diff.cells) {
-        m->moveCursorXY(x + 1, y + 1); // Minitel coords are 1-based
-        m->printChar(ch);
-    }
-    m->moveCursorXY(diff.cx + 1, diff.cy + 1);
-}

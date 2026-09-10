@@ -2,8 +2,6 @@
 #define CLIENT_HPP
 
 #include "Minitel1B_Hard.h"
-#include "Pty.hpp"
-#include "TermScreen.hpp"
 
 enum { 
 	MAIN_PAGE = 1, 
@@ -22,8 +20,6 @@ class Client
 	void killShell(bool fast = false);
     std::string    current_page_str();
     void           init(HardwareSerial& s);
-	Pty*        pty = nullptr;
-	TermScreen* term = nullptr;
     // PNG -> G1 mosaic (centered, B&W threshold). Delegates to Minitel::displayPng
     // bool           displayPng(const std::string& path, int threshold = 128);
     // bool           displayPng(const std::string& path, int maxCellsW, int maxCellsH, int threshold = 128);

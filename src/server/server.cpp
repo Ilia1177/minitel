@@ -2,28 +2,6 @@
 
 #include <poll.h>
 
-void Server::rebuildPfds()
-{
-    std::vector<pollfd>   newPfds;
-    std::vector<PfdOwner> newOwners;
-
-    pollfd stdinPfd{STDIN_FILENO, POLLIN, 0};
-    newPfds.push_back(stdinPfd);
-
-    for (auto* c : _clients) {
-        pollfd serialPfd{c->serial.getFd(), POLLIN, 0};
-        newPfds.push_back(serialPfd);
-        newOwners.push_back({c, false});
-        if (c->pty && c->pty->active()) {
-            pollfd ptyPfd{c->pty->getFd(), POLLIN, 0};
-            newPfds.push_back(ptyPfd);
-            newOwners.push_back({c, true});
-        }
-    }
-    _pfds.swap(newPfds);
-    _owners.swap(newOwners);
-}
-
 char appendCodepoint(std::string& input, unsigned long code)
 {
     if (code == 0) return 0; // no key
@@ -95,8 +73,7 @@ int Server::add_client(const char* device_path)
     new_pfd.revents = 0;
     new_pfd.fd = new_client->serial.getFd();
     _clients.push_back(new_client);
-	rebuildPfds();
-    // _pfds.push_back(new_pfd);
+    _pfds.push_back(new_pfd);
 	log("New client added !", INFO);
     return 0;
 }
@@ -140,9 +117,6 @@ int Server::handle_client_input(Client* client)
 			break;
 		case CONNINFO:
 			ret = connexion_input(client);
-			break;
-		case SYSTEM:
-			system_page_input(client);
 			break;
 		default:
 			break;

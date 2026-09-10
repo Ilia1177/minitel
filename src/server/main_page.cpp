@@ -24,8 +24,6 @@ void Server::main_page(Client* client)
     machine.println("3. Connection internet");
     machine.moveCursorRight(7);
     machine.println("4. Hazardous Collective");
-    machine.moveCursorRight(7);
-    machine.println("5. Systeme interaction [PRIVATE]");
 
     machine.moveCursorXY(1, 20);
 
@@ -48,18 +46,15 @@ int Server::main_page_input(Client* client)
 	key = machine->getKeyCode();
     switch (key) {
     case '1':
-        main_page(client);
+        risographie_page(client);
         break;
     case '2':
-        risographie_page(client);
+        main_page(client);
         break;
     case '3':
 		connexion_page(client);
         break;
     case '4':
-        break;
-    case '5':
-		system_page(client);
         break;
 	case '\r': case ENVOI:
 		handle_client_command(client, input);
