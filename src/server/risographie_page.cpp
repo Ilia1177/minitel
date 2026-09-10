@@ -72,9 +72,10 @@ int Server::risographie_input(Client* client)
         handle_client_command(client, input);
         break;
     default:
-        if (input.length() < 15)
+        if (input.length() < 15) {
         	c = appendCodepoint(input, key);
-		machine->printChar(c);
+			machine->printChar(c);
+		}
     }
     return 0;
 }

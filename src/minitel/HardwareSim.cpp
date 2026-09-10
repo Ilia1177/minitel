@@ -74,7 +74,7 @@ void HardwareSerial::end() {}
 
 size_t HardwareSerial::write(uint8_t b)
 {
-	size_t r = ::write(_fd, &b, 1);
+	int r = ::write(_fd, &b, 1);
     if(r < 0) {
 		std::string er =  "Error write: " + std::string(strerror(errno));
 		throw std::runtime_error(er);

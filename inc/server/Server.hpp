@@ -2,6 +2,8 @@
 #define SERVER_HPP
 
 #include "Client.hpp"
+#include <csignal>
+#include <sstream>
 
 #define POLL_TIMEOUT 1000
 

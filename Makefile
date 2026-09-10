@@ -19,7 +19,7 @@ endif
 INCS += $(PNG_CFLAGS)
 LDFLAGS += $(PNG_LIBS)
 
-LDFLAGS += -lcurl -lutil
+LDFLAGS += -lutil
 INCS	+= -I$(INC_DIR) -I/usr/local/include -I$(HOME)/.local/include
 
 # LDFLAGS += -L/usr/local/lib -lhpdf -L$(HOME)/.local/lib -lhzd -lfreetype
