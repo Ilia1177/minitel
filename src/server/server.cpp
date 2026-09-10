@@ -113,8 +113,8 @@ int Server::init_machine(Client* client)
     machine->newScreen();
     reponse = machine->echo(false);
 	if (reponse == 0x44) {
-		client->currentPage = MAIN_PAGE;
 		client->minitel->smallMode();
+  		client->minitel->extendedKeyboard();  // Clavier étendu
 		main_page(client);
 		return 0;
 	}
@@ -125,7 +125,10 @@ int Server::init_machine(Client* client)
 
 int Server::handle_client_input(Client* client)
 {
+    if (g_signal) return 0;
     int ret;
+
+	log("Handle client input", INFO);
 
 	ret = 0;
     switch (client->currentPage) {
@@ -197,109 +200,134 @@ void Server::log(std::string str, error_status status)
 //
 // // _pfds[0] contiens stdin pour ecouter les commandes du server
 // // _pfds s'étends entre 0 (stdin) et _clients.size (dernier client)
+int Server::listen()
+{
+    if (_clients.size() < 1)
+        return 1;
+
+    log("start Listening clients", INFO);
+    while (!g_signal) {
+        int ret = poll(_pfds.data(), _pfds.size(), POLL_TIMEOUT);
+        if (ret < 0) {
+            if (errno == EINTR)
+                continue;
+            break;
+        } else if (ret == 0) {
+            continue;
+        }
+
+        for (size_t i = 0; i < _pfds.size(); i++) {
+            if (i == 0 && _pfds[0].revents & POLLIN) {
+                std::string line;
+                std::getline(std::cin, line);
+                handle_server_command(line);
+            } else if (_pfds[i].revents & POLLIN) {
+                handle_client_input(_clients[i - 1]);
+				// auto& owner = _owners[i - 1];
+				// if (owner.isPty) {
+				// 	char buf[512];
+				// 	ssize_t n = read(_pfds[i].fd, buf, sizeof(buf));
+				// 	if (n > 0) {
+				// 		owner.client->term->feed(buf, n);
+				// 		renderToMinitel(owner.client->minitel, *owner.client->term);
+				// 	} else {
+				// 		// shell exited
+				// 		delete owner.client->pty; owner.client->pty = nullptr;
+				// 		main_page(owner.client);
+				// 		rebuildPfds();
+				// 	}
+				// } else {
+				//             	handle_client_input(_clients[i - 1]);
+				// }
+            } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                log("Poll error on serial port", ERR);
+                break;
+            }
+            _pfds[i].revents = 0;
+        }
+    }
+    return 0;
+}
+
 // int Server::listen()
 // {
-//     if (_clients.size() < 1)
-//         return 1;
+//     if (_clients.size() < 1) return 1;
+//     rebuildPfds();  // do this once up front, not just after system_page()
 //
 //     log("start Listening clients", INFO);
 //     while (!g_signal) {
 //         int ret = poll(_pfds.data(), _pfds.size(), POLL_TIMEOUT);
 //         if (ret < 0) {
-//             if (errno == EINTR)
+//             if (errno == EINTR) {
+//                 if (g_signal) break;
 //                 continue;
+//             }
 //             break;
-//         } else if (ret == 0) {
-//             continue;
 //         }
+//         if (ret == 0) continue;
+//         if (g_signal) break;
 //
-//         for (size_t i = 0; i < _pfds.size(); i++) {
+//         bool needsRebuild = false;
+//         size_t n = _pfds.size(); // snapshot size, per review point 1
+//
+//         for (size_t i = 0; i < n; i++) {
+//             if (g_signal) break;
 //             if (i == 0 && _pfds[0].revents & POLLIN) {
-//                 std::string line;
-//                 std::getline(std::cin, line);
-//                 handle_server_command(line);
-//             } else if (_pfds[i].revents & POLLIN) {
-// 				auto& owner = _owners[i - 1];
-// 				if (owner.isPty) {
-// 					char buf[512];
-// 					ssize_t n = read(_pfds[i].fd, buf, sizeof(buf));
-// 					if (n > 0) {
-// 						owner.client->term->feed(buf, n);
-// 						renderToMinitel(owner.client->minitel, *owner.client->term);
-// 					} else {
-// 						// shell exited
-// 						delete owner.client->pty; owner.client->pty = nullptr;
-// 						main_page(owner.client);
-// 						rebuildPfds();
-// 					}
-// 				} else {
-//                 	handle_client_input(_clients[i - 1]);
-// 				}
+// 				std::string line;
+// 				std::getline(std::cin, line);
+// 				handle_server_command(line);
+//                 _pfds[0].revents = 0;
+//                 continue;
+//             }
+//             PfdOwner& owner = _owners[i - 1];
+//             if (_pfds[i].revents & POLLIN) {
+//                 if (owner.isPty) {
+//                     char buf[1024];
+//                     ssize_t r = read(_pfds[i].fd, buf, sizeof(buf));
+//                     if (r > 0) {
+//                         // Input logic centralised: pty -> minitel via system_page_output
+//                         // keeps Minitel->pty path in system_page_input, pty->Minitel in system_page_output
+//                         if (owner.client->currentPage == SYSTEM) {
+//                             system_page_output(owner.client, buf, (size_t)r);
+//                         } else if (owner.client->term) {
+//                             owner.client->term->feed(buf, (size_t)r);
+//                             renderToMinitel(owner.client->minitel, *owner.client->term);
+//                         } else {
+//                             system_page_output(owner.client, buf, (size_t)r);
+//                         }
+//                     } else {
+//                         bool fast = (g_signal != 0);
+//                         owner.client->killShell(fast); // restore Teletel
+//                         if (!g_signal) main_page(owner.client);
+//                         needsRebuild = true;
+//                     }
+//                 } else {
+//                     if (g_signal) break;
+//                     if (handle_client_input(owner.client))
+//                         return 0;
+//                 }
 //             } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-//                 log("Poll error on serial port", ERR);
-//                 break;
+//                 log("Poll error on fd", ERR);
+//                 if (owner.isPty) {
+//                     bool fast = (g_signal != 0);
+//                     owner.client->killShell(fast);
+//                     if (!g_signal) main_page(owner.client);
+//                     needsRebuild = true;
+//                 }
 //             }
 //             _pfds[i].revents = 0;
 //         }
+//         if (g_signal) break;
+//         if (needsRebuild) rebuildPfds();
 //     }
-//     return 0;
+//     // Deconnexion path: ensure shells are torn down even when interrupted in SYSTEM
+//     for (auto *c : _clients) {
+//         if (c->pty) c->killShell(true);
+//     }
+//     log("Server interrupted, deconnexion done", INFO);
+//     return g_signal ? 128+g_signal : 0;
 // }
 
-int Server::listen()
-{
-    if (_clients.size() < 1) return 1;
-    rebuildPfds();  // do this once up front, not just after system_page()
-
-    log("start Listening clients", INFO);
-    while (!g_signal) {
-        int ret = poll(_pfds.data(), _pfds.size(), POLL_TIMEOUT);
-        if (ret < 0) { if (errno == EINTR) continue; break; }
-        if (ret == 0) continue;
-
-        bool needsRebuild = false;
-        size_t n = _pfds.size(); // snapshot size, per review point 1
-
-        for (size_t i = 0; i < n; i++) {
-            if (i == 0) {
-                if (_pfds[0].revents & POLLIN) {
-                    std::string line;
-                    std::getline(std::cin, line);
-                    handle_server_command(line);
-                }
-                _pfds[0].revents = 0;
-                continue;
-            }
-            PfdOwner& owner = _owners[i - 1];
-            if (_pfds[i].revents & POLLIN) {
-                if (owner.isPty) {
-                    char buf[512];
-                    ssize_t r = read(_pfds[i].fd, buf, sizeof(buf));
-                    if (r > 0) {
-                        owner.client->term->feed(buf, (size_t)r);
-                        renderToMinitel(owner.client->minitel, *owner.client->term);
-                    } else {
-                        owner.client->killShell(); // see fix 2
-                        main_page(owner.client);
-                        needsRebuild = true;
-                    }
-                } else {
-                    if (handle_client_input(owner.client))
-                        return 0;
-                }
-            } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                log("Poll error on fd", ERR);
-                if (owner.isPty) {
-                    owner.client->killShell();
-                    main_page(owner.client);
-                    needsRebuild = true;
-                }
-            }
-            _pfds[i].revents = 0;
-        }
-        if (needsRebuild) rebuildPfds();
-    }
-    return 0;
-}
 int Server::handle_client_command(Client* client, std::string& command)
 {
 	std::vector<std::string> args = parse_command(command);
@@ -308,7 +336,7 @@ int Server::handle_client_command(Client* client, std::string& command)
 
 	} else if(args[0] == "menu") {
 		main_page(client);
-	} else if (args[0] == "game1") {
+	} else if (args[0] == "riso") {
 		risographie_page(client);
 	} else if (args[0] == "connexion") {
 		connexion_page(client);

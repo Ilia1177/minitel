@@ -19,7 +19,7 @@ class Client
     Client(HardwareSerial& serial);
     Client(void);
     ~Client();
-	void killShell();
+	void killShell(bool fast = false);
     std::string    current_page_str();
     void           init(HardwareSerial& s);
 	Pty*        pty = nullptr;

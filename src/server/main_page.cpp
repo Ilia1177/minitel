@@ -5,6 +5,7 @@ void Server::main_page(Client* client)
     Minitel machine = *(client->minitel);
 
     client->currentPage = MAIN_PAGE;
+	machine.echo(false);
     machine.newScreen();
     machine.println00("Hazardous Éditorial: labo graphique");
     machine.moveCursorDown(2);

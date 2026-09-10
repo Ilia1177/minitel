@@ -5,6 +5,13 @@ void Server::risographie_page(Client *client)
 {
 	client->currentPage = RISO;
 
+	Minitel machine = *(client->minitel);
+	
+	machine.newScreen();
+	machine.scrollMode();
+	machine.moveCursorXY(2, 1);
+	machine.attributs(FOND_NORMAL);
+	machine.attributs(CARACTERE_BLANC);
 	if (print_file(client, "pedago/riso.txt") < 0) {
 		log("error printing file", ERR);
 		main_page(client);
@@ -49,6 +56,17 @@ int Server::risographie_input(Client* client)
     case ANNULATION:
         main_page(client);
         break;
+	case TOUCHE_FLECHE_BAS:
+		log("input: fleche bas", INFO);
+		machine->noCursor();
+		machine->moveCursorXY(1, 24);
+		machine->moveCursorDown(1);
+		break;
+	case TOUCHE_FLECHE_HAUT:
+		machine->noCursor();
+		machine->moveCursorXY(1, 1);
+		machine->moveCursorUp(1);
+		break;
     case '\r':
 	case ENVOI:
         handle_client_command(client, input);

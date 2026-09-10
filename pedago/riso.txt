@@ -1,25 +1,38 @@
- La Risographie est une technique d'impression par couche, situé quelque part 
- entre la photocopie et la sérigraphie. Nommé d'apres la marque (Riso) ayant 
- popularisé et amelioré la techique, la risographie est techniquement dénommé 
- "duplicopie". On pouvait retrouver cette techique dans les écoles, avec les 
- duplicopieurs à main "Ronéo" utilisant une encre bleu violacé a base d'alcool.
+La Risographie est une technique 
+d'impression par couche, situé quelque 
+part entre la photocopie et la 
+sérigraphie. Nommé d'apres la marque 
+(Riso) ayant popularisé et amelioré la 
+techique, la risographie est 
+techniquement dénommé "duplicopie". On 
+pouvait retrouver cette techique dans 
+les écoles, avec les duplicopieurs à 
+main "Ronéo" utilisant une encre bleu 
+violacé a base d'alcool. Cette 
+technique, obsolète dans l'impression 
+moderne, présente quelques defaults, 
+mais aussi beaucoup d'avantages:
+- La technique est relativement simple, 
+et la maintenance de ces outils est
+réalisable facilement, pour peu qu'on 
+soit a l'aise avec l'électromécanique.
+- Le cout écologique et économique de 
+l'impression est generalement tres 
+faible (encre à base d'huile végétale, 
+impression à froid et utilisation de 
+papier sans plastiques). En notant 
+qu'Hazardous press utilise du materiel
+réhabilité.
+- Utilisation de tons direct particulier 
+(dont des encres fluorescente).
+- Encre mat et aspect artisanale trés 
+proche de la sérigraphie.
 
- Cette technique, obsolète dans l'impression moderne, présente quelques 
- defaults, mais aussi beaucoup d'avantages:
-	- La technique est relativement simple, et la maintenance de ces outils est
-	réalisable facilement, pour peu qu'on soit a l'aise avec l'électromécanique.
-	- Le cout écologique et économique de l'impression est generalement tres 
-	faible (encre à base d'huile végétale, impression à froid et utilisation de 
-	papier sans plastiques). En notant qu'Hazardous press utilise du materiel
-	réhabilité.
-	- Utilisation de tons direct particulier (dont des encres fluorescente).
-	- Encre mat et aspect artisanale trés proche de la sérigraphie.
+Nous imprimons avec une risographe GR3770, monochrome. Chaque couche de 
+couleurs est imprimé par dessus la précedente, souvent avec un petit décalage 
+qui accentue l'aspect artisanale et unique de l'impression. La duplicopie, 
+surnommé Risographie, rends chaques copies uniques et particulieres. Chaque 
+impression présente des petits défauts qui leurs sont propre.
 
- Nous imprimons avec une risographe GR3770, monochrome. Chaque couche de 
- couleurs est imprimé par dessus la précedente, souvent avec un petit décalage 
- qui accentue l'aspect artisanale et unique de l'impression. La duplicopie, 
- surnommé Risographie, rends chaques copies uniques et particulieres. Chaque 
- impression présente des petits défauts qui leurs sont propre.
-
- Imprimez localement, imprimez avec panache, imprimez avec HAZARDOUS PRESS !
- Devis sur demande: nil@nl-pk.com - 06 95 00 22 58.
+Imprimez localement, imprimez avec panache, imprimez avec HAZARDOUS PRESS !
+Devis sur demande: nil@nl-pk.com - 06 95 00 22 58.

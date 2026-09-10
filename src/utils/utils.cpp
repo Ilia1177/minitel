@@ -36,6 +36,24 @@ void input_box(Client* client)
 	machine->echo(true);
 }
 
+std::string getline_number(const std::string &path, int nb)
+{
+	std::ifstream fichier;
+	std::string ligne;
+
+	if (nb < 0)
+		return "";
+	fichier.open(path);
+	if (!fichier.is_open()) {
+		return "";
+	}
+	int i = 0;
+	while(std::getline(fichier, ligne) && i < nb)
+		i++;
+	fichier.close();
+	return ligne;
+}
+
 int print_file(Client* client, const std::string &path) 
 {
 	std::ifstream fichier;
@@ -48,9 +66,9 @@ int print_file(Client* client, const std::string &path)
 	if (!fichier.is_open()) {
 		return -1;
 	}
-
 	while(std::getline(fichier, ligne)) {
 		machine->println(ligne);
+		usleep(1100);
 	}
 	fichier.close();
 	return 0;

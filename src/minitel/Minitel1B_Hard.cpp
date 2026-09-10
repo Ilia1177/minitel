@@ -35,6 +35,17 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <signal.h>
+extern volatile sig_atomic_t g_signal;
+inline bool waitAvailableSignal(HardwareSerial& s, int timeout_ms=500){
+    unsigned long start=millis();
+    while(!s.available()>0){
+        if(g_signal) return false;
+        if(millis()-start > (unsigned long)timeout_ms) return false;
+        delay(1);
+    }
+    return true;
+}
 
 ////////////////////////////////////////////////////////////////////////
 /*
@@ -1012,8 +1023,8 @@ unsigned long Minitel::getKeyCode(bool unicode)
     }
     // Séquences de deux ou trois codes (voir p.118)
     if (code == 0x19) { // SS2
-        while (!mySerial.available() > 0)
-            ; // Indispensable
+        if (!waitAvailableSignal(mySerial)) return 0; //
+            
         code = (code << 8) + readByte();
         // Les diacritiques (3 codes)
         if ((code == 0x1941) || (code == 0x1942) || (code == 0x1943) || (code == 0x1948) ||
@@ -1022,12 +1033,12 @@ unsigned long Minitel::getKeyCode(bool unicode)
             // sur une touche avec accent ou tréma
             byte caractere = 0x19;
             while (caractere == 0x19) {
-                while (!mySerial.available() > 0)
-                    ; // Indispensable
+                if (!waitAvailableSignal(mySerial)) return 0; //
+                    
                 caractere = readByte();
                 if (caractere == 0x19) {
-                    while (!mySerial.available() > 0)
-                        ; // Indispensable
+                    if (!waitAvailableSignal(mySerial)) return 0; //
+                        
                     caractere = readByte();
                     caractere = 0x19;
                 }
@@ -1037,8 +1048,8 @@ unsigned long Minitel::getKeyCode(bool unicode)
             if (caractere ==
                 0x13) { // Les touches RETOUR REPETITION GUIDE ANNULATION SOMMAIRE CORRECTION SUITE
                         // CONNEXION_FIN ont un code qui commence par 0x13
-                while (!mySerial.available() > 0)
-                    ; // Indispensable
+                if (!waitAvailableSignal(mySerial)) return 0; //
+                    
                 caractere =
                     readByte(); // Les touches de fonction sont codées sur 2 octets (0x13..)
                 caractere = 0;
@@ -1141,8 +1152,8 @@ unsigned long Minitel::getKeyCode(bool unicode)
     }
     // Touches de fonction (voir p.123)
     else if (code == 0x13) {
-        while (!mySerial.available() > 0)
-            ; // Indispensable
+        if (!waitAvailableSignal(mySerial)) return 0; //
+            
         code = (code << 8) + readByte();
     }
     // Touches de gestion du curseur lorsque le clavier est en mode étendu (voir p.124)
@@ -1154,12 +1165,12 @@ unsigned long Minitel::getKeyCode(bool unicode)
         if (mySerial.available() > 0) {
             code = (code << 8) + readByte();
             if (code == 0x1B5B) {
-                while (!mySerial.available() > 0)
-                    ; // Indispensable
+                if (!waitAvailableSignal(mySerial)) return 0; //
+                    
                 code = (code << 8) + readByte();
                 if ((code == 0x1B5B34) || (code == 0x1B5B32)) {
-                    while (!mySerial.available() > 0)
-                        ; // Indispensable
+                    if (!waitAvailableSignal(mySerial)) return 0; //
+                        
                     code = (code << 8) + readByte();
                 }
             }
@@ -1450,8 +1461,7 @@ void Minitel::writeBytesPRO(int n)
 
 unsigned long Minitel::identificationBytes()
 { // Voir p.138
-    while (!mySerial)
-        ; // On attend que le port soit sur écoute.
+    while (!mySerial) { if (g_signal) return 0; } // wait
     unsigned long time = millis();
     unsigned long trame = 0;      // 32 bits = 4 octets
     while (trame >> 24 != 0x01) { // La trame doit débuter par SOH (0x01)
@@ -1461,8 +1471,8 @@ unsigned long Minitel::identificationBytes()
         if (millis() - time > 1000)
             return 0; // On se donne 1000 ms pour obtenir la réponse
     }
-    while (!mySerial.available() > 0)
-        ; // Indispensable
+    if (!waitAvailableSignal(mySerial)) return 0; //
+        
     if (readByte() != 0x04)
         return 0;              // La trame doit se terminer par EOT (0x04)
     trame = (trame << 8) >> 8; // On élimine l'octet SOH (0x01) de la trame
@@ -1476,8 +1486,7 @@ unsigned long Minitel::identificationBytes()
 int Minitel::workingSpeed()
 {
     int bauds = -1;
-    while (!mySerial)
-        ; // On attend que le port soit sur écoute.
+    while (!mySerial) { if (g_signal) return 0; } // wait
     unsigned long time = millis();
     unsigned long duree = 0;
     unsigned long trame = 0; // 32 bits = 4 octets
@@ -1510,14 +1519,14 @@ int Minitel::workingSpeed()
 byte Minitel::workingStandard(unsigned long sequence)
 {
     // Fonction modifiée par iodeo sur GitHub en octobre 2021
-    while (!mySerial)
-        ; // On attend que le port soit sur écoute.
+    while (!mySerial) { if (g_signal) return 0; }
     unsigned long time = millis();
     unsigned long duree = 0;
     unsigned long trame = 0; // 32 bits = 4 octets
     // On se donne 100ms pour recevoir l'acquittement
     // Sinon, on peut supposer que le mode demandé était déjà actif
     while ((trame != sequence) && (duree < 100)) {
+        if (g_signal) return 0;
         if (mySerial.available() > 0) {
             trame = (trame << 8) + readByte();
             // Serial.println(trame, HEX);
@@ -1536,21 +1545,17 @@ byte Minitel::workingMode()
     // RL : rouleau (1 = actif)
     // F  : format d'écran (1 = 80 colonnes)
     unsigned long start = millis();
-    while (!mySerial)
-        ;                    // On attend que le port soit sur écoute.
+    while (!mySerial) { if (g_signal) return 0xFF; }
     unsigned long trame = 0; // 32 bits = 4 octets
-    printf("waiting status\n");
     while (trame >> 8 != 0x1B3A73) { // PRO2 (0x1B,0x3A), REP_STATUS_FONCTIONNEMENT (0x73)
+        if (g_signal) return 0xFF;
         int available = mySerial.available();
         if (available > 0) {
             int b = readByte();
-            printf("byte received: %02X\n", b);
             trame = (trame << 8) + b;
-            printf("trame: %08lX\n", trame);
             // Serial.println(trame, HEX);
         }
         if (millis() - start > 2000) {
-            printf("timeout trame=%08lX\n", trame);
             return 0xFF;
         }
     }
@@ -1564,19 +1569,20 @@ byte Minitel::workingKeyboard()
     // On récupère notamment les 3 bits de poids faibles suivants : C0 0 Eten
     // Eten : mode étendu (1 = actif)
     // C0   : codage en jeu C0 des touches de gestion du curseur (1 = actif)
-    while (!mySerial)
-        ;                    // On attend que le port soit sur écoute.
+    while (!mySerial) { if (g_signal) return 0xFF; }
     unsigned long trame = 0; // 32 bits = 4 octets
+    unsigned long start = millis();
     while (
         trame !=
         0x1B3B7359) { // PRO3 (0x1B,0x3B), REP_STATUS_CLAVIER (0x73), CODE_RECEPTION_CLAVIER (0x59)
+        if (g_signal) return 0xFF;
         if (mySerial.available() > 0) {
             trame = (trame << 8) + readByte();
             // Serial.println(trame, HEX);
         }
+        if (millis() - start > 2000) return 0xFF;
     }
-    while (!mySerial.available() > 0)
-        ;              // Indispensable
+    if (!waitAvailableSignal(mySerial,2000)) return 0xFF;
     return readByte(); // Octet de statut fonctionnement clavier
 }
 /*--------------------------------------------------------------------*/
@@ -1596,12 +1602,12 @@ byte Minitel::workingAiguillage(byte module)
     // (0 : module bloqué ; 1 : module actif)
 	
 	unsigned long start = millis();
-    while (!mySerial)
-        ;                    // On attend que le port soit sur écoute.
+    while (!mySerial) { if (g_signal) return 0xFF; }
     unsigned long trame = 0; // 32 bits = 4 octets
     while (trame !=
            (0x1B3B63 << 8 |
             module)) { // PRO3 (0x1B,0x3B), FROM (0x63), code réception ou émission du module
+        if (g_signal) return 0xFF;
         if (mySerial.available() > 0) {
             trame = (trame << 8) + readByte();
             // Serial.println(trame, HEX);
@@ -1610,9 +1616,8 @@ byte Minitel::workingAiguillage(byte module)
             return 0xFF;
         }
     }
-    while (!mySerial.available() > 0)
-        ;              // Indispensable
-    return readByte(); // Octet de statut associé à un module
+    if (!waitAvailableSignal(mySerial,2000)) return 0xFF;
+    return readByte(); // Octet de statut à un module
 }
 /*--------------------------------------------------------------------*/
 
@@ -1622,8 +1627,7 @@ byte Minitel::workingModem()
     // On récupère uniquement la séquence immédiate 0x1359
     // en cas de connexion confirmé, la séquence 0x1353 s'ajoutera - non traité ici
     // en cas de timeout (environ 40sec), la séquence 0x1359 s'ajoutera - non traité ici
-    while (!mySerial)
-        ;                   // On attend que le port soit sur écoute.
+    while (!mySerial) { if (g_signal) return 0; } // wait
     unsigned int trame = 0; // 16 bits = 2 octets
     while (trame >> 8 != 0x13) {
         if (mySerial.available() > 0) {
@@ -1641,8 +1645,7 @@ unsigned long Minitel::getCursorXY()
     writeByte(ESC);
     writeByte(0x61);
     // Réponse
-    while (!mySerial)
-        ;                    // On attend que le port soit sur écoute.
+    while (!mySerial) { if (g_signal) return 0; } // wait
     unsigned long trame = 0; // 32 bits = 4 octets
     while (trame >> 16 != US) {
         if (mySerial.available() > 0) {

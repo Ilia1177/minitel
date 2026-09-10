@@ -30,14 +30,16 @@ public:
         if (pid < 0) return false;
 
         if (pid == 0) {
-            // child
+            // child — Teleinfo is transparent vt100, keep 7-bit clean
             setenv("TERM", "vt100", 1);
-            setenv("PS1", "\\W $ ", 1); // keep prompt short for 40 cols
-            struct termios tio{};
-            tcgetattr(STDIN_FILENO, &tio);
-            tio.c_lflag &= ~ECHO;      // we do echo ourselves via Minitel emulation
-            tcsetattr(STDIN_FILENO, TCSANOW, &tio);
-            execl(shellPath, shellPath, "--login", nullptr);
+            setenv("LANG", "C", 1);
+            setenv("LC_ALL", "C", 1);
+            setenv("LC_CTYPE", "C", 1);
+            // Avoid utf8 prompts that become white blocks on 7E1 Minitel
+            if (cols >= 80) setenv("PS1", "\\u@\\h:\\w $ ", 1);
+            else setenv("PS1", "\\W $ ", 1);
+            // Leave termios to default (ECHO on) for Teleinfo passthrough
+            execl(shellPath, shellPath, nullptr);
             _exit(127);
         }
         return true;

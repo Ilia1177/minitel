@@ -25,7 +25,7 @@ enum error_status {
 	INFO = 3
 };
 
-extern int g_signal;
+extern volatile sig_atomic_t g_signal;
 struct PfdOwner { Client* client; bool isPty; };
 class Server
 {
@@ -39,8 +39,9 @@ class Server
 
 	void log(std::string str, error_status status);
 
-void system_page(Client* client);
-void system_page_input(Client* client);
+ void system_page(Client* client);
+ void system_page_input(Client* client);
+ void system_page_output(Client* client, const char* data, size_t len);
 	void connexion_page(Client* client);
 	int connexion_input(Client* client);
     void risographie_page(Client*);
@@ -66,5 +67,7 @@ char appendCodepoint(std::string& input, unsigned long code);
 void machine_print_infos(Client* client);
 void input_box(Client* client);
 int print_file(Client* client, const std::string &path);
+
+std::string getline_number(const std::string &path, int nb);
 void renderToMinitel(Minitel* m, TermScreen& screen);
 #endif
