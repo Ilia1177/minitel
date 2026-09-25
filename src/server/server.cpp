@@ -262,13 +262,11 @@ int Server::listen()
 			socklen_t len = sizeof(client_addr);
 			int client_fd = accept(listen_fd, (sockaddr*)&client_addr, &len);
 			if (client_fd >= 0) {
-				fcntl(client_fd, F_SETFL, O_NONBLOCK); // non-blocking client too
-				pollfd new_pfd{};
-				new_pfd.fd = client_fd;
-				new_pfd.events = POLLIN;
-				_pfds.push_back(new_pfd);
+				fcntl(client_fd, F_SETFL, O_NONBLOCK);
+				add_client(client_fd);
 			}
 	    } else if (_pfds[i].revents & POLLIN) {
+			std::cout << "POLLIN " << i << std::endl;
 			handle_client_input(_clients[i - 2]);
 	    } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 			log("Poll error on serial port", ERR);
