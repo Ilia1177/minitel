@@ -180,6 +180,10 @@ void Server::log(std::string str, log_level status)
 int Server::listen()
 {
 	int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (listen_fd < 0) {
+		perror("socket");
+		return 1;
+	}
 	int opt = 1;
 	setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
@@ -188,8 +192,14 @@ int Server::listen()
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(30777);
 
-	bind(listen_fd, (sockaddr*)&addr, sizeof(addr));
-	::listen(listen_fd, 16); // backlog
+	if (bind(listen_fd, (sockaddr*)&addr, sizeof(addr)) < 0) {
+		perror("bind");
+		return 1;
+	}
+	if (::listen(listen_fd, 16) < 0) {
+		perror("listen");
+		return 1;
+	}
 
 	// Make it non-blocking so a stalled accept() never freezes poll()
 	int flags = fcntl(listen_fd, F_GETFL, 0);

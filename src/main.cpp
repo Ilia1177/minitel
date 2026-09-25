@@ -11,7 +11,7 @@ int main(int ac, char* av[])
 {
     Server server;
     int    status;
-
+	signal(SIGPIPE, SIG_IGN);
     struct sigaction sa{};
     sa.sa_handler = signal_handler;
     sigemptyset(&sa.sa_mask);
