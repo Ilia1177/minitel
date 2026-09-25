@@ -13,6 +13,7 @@ enum {
 class Client
 {
   public:
+	Client(int fd);
     Client(const char* device);
     Client(HardwareSerial& serial);
     Client(void);

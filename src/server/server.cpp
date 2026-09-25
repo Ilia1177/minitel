@@ -34,6 +34,7 @@ Server::Server()
     stdinPfd.fd = STDIN_FILENO;
     stdinPfd.events = POLLIN;
     _pfds.push_back(stdinPfd);
+	log("server will be listening stdin on 0", INFO);
 };
 
 Server::~Server()
@@ -42,7 +43,25 @@ Server::~Server()
         delete _clients[i];
     }
 }
+int Server::add_client(int fd)
+{
+    Client* new_client;
+    pollfd  new_pfd;
 
+	new_client = nullptr;
+	log("Adding new client from FD (port 30777)...", INFO);
+	new_client = new Client(fd);
+ 
+	if (g_signal)
+		return g_signal;
+    new_pfd.events = POLLIN;
+    new_pfd.revents = 0;
+    new_pfd.fd = fd;
+    _clients.push_back(new_client);
+    _pfds.push_back(new_pfd);
+	log("New client added from 30777!", INFO);
+    return 0;
+}
 int Server::add_client(const char* device_path)
 {
     Client* new_client;
@@ -102,7 +121,16 @@ int Server::init_machine(Client* client)
 
 int Server::handle_client_input(Client* client)
 {
-    if (g_signal) return 0;
+    if (g_signal || !client) 
+		return 0;
+	if(!client->minitel) {
+		log("CLIENT IS FROM 30777", INFO);
+		while(client->serial.available()) {
+		 char c = static_cast<char>(client->serial.read());
+		 std::cout << c;
+		}
+		return 0;
+	}
     int ret;
 
 	log("Handle client input", INFO);
@@ -209,9 +237,7 @@ int Server::listen()
 	listen_pfd.fd = listen_fd;
 	listen_pfd.events = POLLIN;
 	_pfds.push_back(listen_pfd); 
-
-    // if (_clients.size() < 1)
-        // return 1;
+	log("sever will be listening on port 30777 at index 1", INFO);
 
     log("start Listening clients", INFO);
     while (!g_signal) {
@@ -226,28 +252,27 @@ int Server::listen()
 
 	for (size_t i = 0; i < _pfds.size(); i++) {
 	    if (i == 0 && _pfds[0].revents & POLLIN) {
-		log("Listen from STDIN",INFO);
-		std::string line;
-		std::getline(std::cin, line);
-		handle_server_command(line);
+			log("Listen from STDIN",INFO);
+			std::string line;
+			std::getline(std::cin, line);
+			handle_server_command(line);
 	    } else if (_pfds[i].fd == listen_fd && _pfds[i].revents & POLLIN) {
-		log("ADD PFD FROM PORT 30777", WARN);
-		sockaddr_in client_addr{};
-		socklen_t len = sizeof(client_addr);
-		int client_fd = accept(listen_fd, (sockaddr*)&client_addr, &len);
-		if (client_fd >= 0) {
-			fcntl(client_fd, F_SETFL, O_NONBLOCK); // non-blocking client too
-			pollfd new_pfd{};
-			new_pfd.fd = client_fd;
-			new_pfd.events = POLLIN;
-			_pfds.push_back(new_pfd);
-
-		}
+			log("ADD PFD FROM PORT 30777", WARN);
+			sockaddr_in client_addr{};
+			socklen_t len = sizeof(client_addr);
+			int client_fd = accept(listen_fd, (sockaddr*)&client_addr, &len);
+			if (client_fd >= 0) {
+				fcntl(client_fd, F_SETFL, O_NONBLOCK); // non-blocking client too
+				pollfd new_pfd{};
+				new_pfd.fd = client_fd;
+				new_pfd.events = POLLIN;
+				_pfds.push_back(new_pfd);
+			}
 	    } else if (_pfds[i].revents & POLLIN) {
-		handle_client_input(_clients[i - 2]);
+			handle_client_input(_clients[i - 2]);
 	    } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-		log("Poll error on serial port", ERR);
-		break;
+			log("Poll error on serial port", ERR);
+			break;
 	    }
 	    _pfds[i].revents = 0;
 	}

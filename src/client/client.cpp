@@ -1,6 +1,9 @@
 #include "Client.hpp"
 
 Client::Client(): minitel(nullptr) {}
+Client::Client(int fd): minitel(nullptr) {
+	serial.setFd(fd);
+}
 
 Client::Client(const char* device) 
 {

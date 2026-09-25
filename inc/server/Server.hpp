@@ -53,6 +53,7 @@ class Server
 
     int init_machine(Client* client);
     int add_client(const char* serial_path);
+    int add_client(int);
     int listen(void);
 
   private:

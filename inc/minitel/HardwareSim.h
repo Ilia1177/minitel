@@ -47,20 +47,21 @@ public:
 #include <iostream>
 
 class HardwareSerial {
-public:
-    bool openPort(const char* device);
-    void begin(unsigned long baud, int /*config*/ = 0);
-    void end();
-    size_t write(uint8_t b);
-    int available();
-    int read();
-    explicit operator bool() const;
+	public:
+		bool openPort(const char* device);
+		void begin(unsigned long baud, int /*config*/ = 0);
+		void end();
+		size_t write(uint8_t b);
+		int available();
+		int read();
+		explicit operator bool() const;
 
-	int getFd();
+		int getFd();
+		void setFd(int f);
 
-private:
-    int _fd = -1;
-    speed_t baudToSpeed(unsigned long baud);
+	private:
+		int _fd = -1;
+		speed_t baudToSpeed(unsigned long baud);
 };
 
 #endif
