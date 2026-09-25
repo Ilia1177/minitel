@@ -20,7 +20,7 @@
 #define ALIGN_TOP 			(5 << 16)
 #define ALIGN_BOTTOM 		(6 << 16)
 
-enum error_status {
+enum log_level {
 	ERR = 1,
 	WARN = 2,
 	INFO = 3
@@ -39,11 +39,11 @@ class Server
 	int handle_client_command(Client* client, std::string& cmd);
 
 
-	void log(std::string str, error_status status);
+	void log(std::string str, log_level status);
 
- void system_page(Client* client);
- void system_page_input(Client* client);
- void system_page_output(Client* client, const char* data, size_t len);
+	void system_page(Client* client);
+	void system_page_input(Client* client);
+	void system_page_output(Client* client, const char* data, size_t len);
 	void connexion_page(Client* client);
 	int connexion_input(Client* client);
     void risographie_page(Client*);

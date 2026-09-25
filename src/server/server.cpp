@@ -154,7 +154,7 @@ int Server::handle_server_command(std::string& cmd)
     return 0;
 }
 
-void Server::log(std::string str, error_status status)
+void Server::log(std::string str, log_level status)
 {
 	switch(status) {
 		case ERR: 
@@ -174,10 +174,33 @@ void Server::log(std::string str, error_status status)
 //
 // // _pfds[0] contiens stdin pour ecouter les commandes du server
 // // _pfds s'étends entre 0 (stdin) et _clients.size (dernier client)
+#include "poll.h"
+ #include <sys/socket.h>
 int Server::listen()
 {
-    if (_clients.size() < 1)
-        return 1;
+	int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+	int opt = 1;
+	setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+	sockaddr_in addr{};
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(30777);
+
+	bind(listen_fd, (sockaddr*)&addr, sizeof(addr));
+	::listen(listen_fd, 16); // backlog
+
+	// Make it non-blocking so a stalled accept() never freezes poll()
+	int flags = fcntl(listen_fd, F_GETFL, 0);
+	fcntl(listen_fd, F_SETFL, flags | O_NONBLOCK);
+
+	pollfd listen_pfd{};
+	listen_pfd.fd = listen_fd;
+	listen_pfd.events = POLLIN;
+	_pfds.push_back(listen_pfd); 
+
+    // if (_clients.size() < 1)
+        // return 1;
 
     log("start Listening clients", INFO);
     while (!g_signal) {
@@ -195,6 +218,17 @@ int Server::listen()
                 std::string line;
                 std::getline(std::cin, line);
                 handle_server_command(line);
+			} else if (_pfds[i].fd == listen_fd && _pfds[i].revents & POLLIN) {
+				sockaddr_in client_addr{};
+				socklen_t len = sizeof(client_addr);
+				int client_fd = accept(listen_fd, (sockaddr*)&client_addr, &len);
+				if (client_fd >= 0) {
+					fcntl(client_fd, F_SETFL, O_NONBLOCK); // non-blocking client too
+					// addNewClient(client_fd); // your own method: push to _clients + _pfds
+				_pfds.push_back(client_fd);
+				log("ADD PFD FROM PORT 30777");
+
+				}
             } else if (_pfds[i].revents & POLLIN) {
                 handle_client_input(_clients[i - 1]);
 				// auto& owner = _owners[i - 1];
