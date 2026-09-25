@@ -176,6 +176,7 @@ void Server::log(std::string str, log_level status)
 // // _pfds s'étends entre 0 (stdin) et _clients.size (dernier client)
 #include "poll.h"
  #include <sys/socket.h>
+#include <netinet/in.h>
 int Server::listen()
 {
 	int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -215,38 +216,26 @@ int Server::listen()
 
         for (size_t i = 0; i < _pfds.size(); i++) {
             if (i == 0 && _pfds[0].revents & POLLIN) {
+				log("Listen from STDIN",INFO);
                 std::string line;
                 std::getline(std::cin, line);
                 handle_server_command(line);
 			} else if (_pfds[i].fd == listen_fd && _pfds[i].revents & POLLIN) {
+				log("ADD PFD FROM PORT 30777", WARN);
 				sockaddr_in client_addr{};
 				socklen_t len = sizeof(client_addr);
 				int client_fd = accept(listen_fd, (sockaddr*)&client_addr, &len);
 				if (client_fd >= 0) {
 					fcntl(client_fd, F_SETFL, O_NONBLOCK); // non-blocking client too
 					// addNewClient(client_fd); // your own method: push to _clients + _pfds
-				_pfds.push_back(client_fd);
-				log("ADD PFD FROM PORT 30777");
+	pollfd new_pfd{};
+	new_pfd.fd = client_fd;
+	new_pfd.events = POLLIN;
+				_pfds.push_back(new_pfd);
 
 				}
             } else if (_pfds[i].revents & POLLIN) {
-                handle_client_input(_clients[i - 1]);
-				// auto& owner = _owners[i - 1];
-				// if (owner.isPty) {
-				// 	char buf[512];
-				// 	ssize_t n = read(_pfds[i].fd, buf, sizeof(buf));
-				// 	if (n > 0) {
-				// 		owner.client->term->feed(buf, n);
-				// 		renderToMinitel(owner.client->minitel, *owner.client->term);
-				// 	} else {
-				// 		// shell exited
-				// 		delete owner.client->pty; owner.client->pty = nullptr;
-				// 		main_page(owner.client);
-				// 		rebuildPfds();
-				// 	}
-				// } else {
-				//             	handle_client_input(_clients[i - 1]);
-				// }
+                handle_client_input(_clients[i - 2]);
             } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
                 log("Poll error on serial port", ERR);
                 break;
