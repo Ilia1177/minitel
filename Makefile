@@ -60,6 +60,8 @@ $(NAME)			: $(OBJS)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCS) $^ -o $(NAME) $(LDFLAGS)
 
+run	: $(NAME)
+	sudo ./$(NAME) /dev/ttyUSB0
 clean			:
 	@echo "Cleaning object..."
 	@rm -rf $(OBJ_DIR)
