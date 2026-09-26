@@ -126,16 +126,18 @@ int Server::init_machine(Client* client)
 
 int Server::handle_client_input(Client* client)
 {
+	int r = 0;
 	log("Handle client input", INFO);
     if (g_signal || !client) 
 		return 0;
 	if(!client->minitel) {
 		log("CLIENT IS FROM 30777", WARN);
 		while(client->serial.available()) {
-		 char c = static_cast<char>(client->serial.read());
-		 std::cout << c;
+			r++;
+			 char c = static_cast<char>(client->serial.read());
+			 std::cout << c;
 		}
-		return 0;
+		return r;
 	}
     int ret;
 
@@ -155,7 +157,7 @@ int Server::handle_client_input(Client* client)
 		default:
 			break;
     }
-    return ret;
+    return ret + 1;
 }
 
 std::vector<std::string> parse_command(std::string& cmd)
@@ -276,7 +278,6 @@ int Server::listen()
 			std::cout << "30777 POLLIN add HTTP client " << i << std::endl;
 			sockaddr_in client_addr{};
 			socklen_t len = sizeof(client_addr);
-			// int client_fd = accept(port_30777_fd, (sockaddr*)&client_addr, &len);
 			int client_fd = accept(_pfds[i].fd, (sockaddr*)&client_addr, &len);
 			if (client_fd >= 0) {
 				fcntl(client_fd, F_SETFL, O_NONBLOCK);
