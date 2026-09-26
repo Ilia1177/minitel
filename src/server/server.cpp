@@ -203,7 +203,7 @@ void Server::log(std::string str, log_level status)
 // // _pfds[0] contiens stdin pour ecouter les commandes du server
 // // _pfds s'étends entre 0 (stdin) et _clients.size (dernier client)
 #include "poll.h"
- #include <sys/socket.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 int Server::listen()
 {
@@ -257,7 +257,7 @@ int Server::listen()
 			std::getline(std::cin, line);
 			handle_server_command(line);
 	    } else if (_pfds[i].fd == listen_fd && _pfds[i].revents & POLLIN) {
-			log("ADD PFD FROM PORT 30777", WARN);
+			log("New connection FROM PORT 30777", WARN);
 			sockaddr_in client_addr{};
 			socklen_t len = sizeof(client_addr);
 			int client_fd = accept(listen_fd, (sockaddr*)&client_addr, &len);
@@ -267,7 +267,7 @@ int Server::listen()
 			}
 	    } else if (_pfds[i].revents & POLLIN) {
 			std::cout << "POLLIN " << i << std::endl;
-			handle_client_input(_clients[i - 2]);
+			handle_client_input(_clients[i - 1]);
 	    } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 			log("Poll error on serial port", ERR);
 			break;
