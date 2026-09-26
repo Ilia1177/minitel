@@ -286,13 +286,14 @@ int Server::listen()
 				log("ADD Client failed", ERR);
 			}
 		} else if (_pfds[i].revents & POLLIN) {
-			bool stillConnected = handle_client_input(_clients[i - 2]);
-			if (!stillConnected) {
-				to_remove.push_back(i);
-			}
-	    } else if (_pfds[i].revents & POLLIN) {
 			std::cout << "general POLLIN " << i << std::endl;
-			handle_client_input(_clients[i - 2]);
+			Client* cli = _clients[i-2];
+			if (!cli->serial.available()) {
+				log("Client disconnect", ERR);
+				to_remove.push_back(i);
+				continue;
+			}
+			handle_client_input(cli);
 	    } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 			log("Poll error on serial port", ERR);
 			break;
