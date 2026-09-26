@@ -133,6 +133,7 @@ int Server::handle_client_input(Client* client)
 	if(!client->minitel) {
 		log("CLIENT IS FROM 30777", WARN);
 		while(client->serial.available()) {
+			log("read from 30777 client", WARN);
 			r++;
 			 char c = static_cast<char>(client->serial.read());
 			 std::cout << c;
