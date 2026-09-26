@@ -131,9 +131,8 @@ int Server::handle_client_input(Client* client)
     if (g_signal || !client) 
 		return 0;
 	if(!client->minitel) {
-		log("CLIENT IS FROM 30777", WARN);
+		log("read from 30777 client: ", WARN);
 		while(client->serial.available()) {
-			log("read from 30777 client", WARN);
 			r++;
 			 char c = static_cast<char>(client->serial.read());
 			 std::cout << c;
@@ -142,8 +141,8 @@ int Server::handle_client_input(Client* client)
 	}
     int ret;
 
-	log("Handle client input", INFO);
 
+	log("Handle MINITEL client input", INFO);
 	ret = 0;
     switch (client->currentPage) {
 		case MAIN_PAGE:

@@ -60,12 +60,12 @@ int Server::main_page_input(Client* client)
 		handle_client_command(client, input);
 		break;
     case CONNEXION_FIN:
-        return 1;
+        return 0;
     default:
 		c = appendCodepoint(input, key);
 		if(input.length() < 10 && c > 0)
 			machine->printChar(c);
     }
-    return 0;
+    return 1;
 }
 
