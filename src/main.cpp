@@ -18,10 +18,12 @@ int main(int ac, char* av[])
     sa.sa_flags = 0; // no SA_RESTART -> poll returns EINTR
     sigaction(SIGINT, &sa, nullptr);
     sigaction(SIGTERM, &sa, nullptr);
-    if (ac < 2) {
-        std::cerr << "Must have an argument: path of device\n";
-        return 1;
-    }
+    // if (ac < 2) {
+    //     std::cerr << "Must have an argument: path of device\n";
+    //     return 1;
+    // }
+	server.add_listening_stdin();
+	server.add_listening_port();
     for (int i = 1; i < ac; i++) {
         server.add_client(av[i]);
     }

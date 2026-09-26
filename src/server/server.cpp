@@ -30,11 +30,6 @@ char appendCodepoint(std::string& input, unsigned long code)
 
 Server::Server()
 {
-    struct pollfd stdinPfd{};
-    stdinPfd.fd = STDIN_FILENO;
-    stdinPfd.events = POLLIN;
-    _pfds.push_back(stdinPfd);
-	log("server will be listening stdin on 0", INFO);
 };
 
 Server::~Server()
@@ -43,6 +38,16 @@ Server::~Server()
         delete _clients[i];
     }
 }
+
+int Server::add_listening_stdin() {
+    struct pollfd stdinPfd{};
+    stdinPfd.fd = STDIN_FILENO;
+    stdinPfd.events = POLLIN;
+    _pfds.push_back(stdinPfd);
+	log("server will be listening stdin on 0", INFO);
+	return _pfds.size() - 1;
+ }
+
 int Server::add_client(int fd)
 {
     Client* new_client;
@@ -205,38 +210,45 @@ void Server::log(std::string str, log_level status)
 #include "poll.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
-int Server::listen()
-{
-	int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (listen_fd < 0) {
+
+int Server::add_listening_port() {
+
+	int port_30777_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (port_30777_fd < 0) {
 		perror("socket");
 		return 1;
 	}
 	int opt = 1;
-	setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+	setsockopt(port_30777_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	sockaddr_in addr{};
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(30777);
 
-	if (bind(listen_fd, (sockaddr*)&addr, sizeof(addr)) < 0) {
+	if (bind(port_30777_fd, (sockaddr*)&addr, sizeof(addr)) < 0) {
 		perror("bind");
 		return 1;
 	}
-	if (::listen(listen_fd, 16) < 0) {
+	if (::listen(port_30777_fd, 16) < 0) {
 		perror("listen");
 		return 1;
 	}
 
 	// Make it non-blocking so a stalled accept() never freezes poll()
-	int flags = fcntl(listen_fd, F_GETFL, 0);
-	fcntl(listen_fd, F_SETFL, flags | O_NONBLOCK);
+	int flags = fcntl(port_30777_fd, F_GETFL, 0);
+	fcntl(port_30777_fd, F_SETFL, flags | O_NONBLOCK);
 
 	pollfd listen_pfd{};
-	listen_pfd.fd = listen_fd;
+	listen_pfd.fd = port_30777_fd;
 	listen_pfd.events = POLLIN;
-	_pfds.push_back(listen_pfd); 
+	_pfds.push_back(listen_pfd); // at index 2
+	return _pfds.size() - 1;
+}
+
+int Server::listen()
+{
+	
 	log("sever will be listening on port 30777 at index 1", INFO);
 
     log("start Listening clients", INFO);
@@ -250,24 +262,29 @@ int Server::listen()
             continue;
         }
 
-	for (size_t i = 0; i < _pfds.size(); i++) {
-	    if (i == 0 && _pfds[0].revents & POLLIN) {
-			log("Listen from STDIN",INFO);
+    log("Iterate throught clients", INFO);
+	for (size_t i = 0; i < _pfds.size() - 1; i++) {
+	    if (i == 0 && _pfds[i].revents & POLLIN) {
+			log("Read from STDIN",INFO);
 			std::string line;
 			std::getline(std::cin, line);
 			handle_server_command(line);
-	    } else if (_pfds[i].fd == listen_fd && _pfds[i].revents & POLLIN) {
+	    } else if (i == 1 && _pfds[i].revents & POLLIN) {
 			log("New connection FROM PORT 30777", WARN);
+			std::cout << "30777 POLLIN add HTTP client " << i << std::endl;
 			sockaddr_in client_addr{};
 			socklen_t len = sizeof(client_addr);
-			int client_fd = accept(listen_fd, (sockaddr*)&client_addr, &len);
+			// int client_fd = accept(port_30777_fd, (sockaddr*)&client_addr, &len);
+			int client_fd = accept(_pfds[i].fd, (sockaddr*)&client_addr, &len);
 			if (client_fd >= 0) {
 				fcntl(client_fd, F_SETFL, O_NONBLOCK);
 				add_client(client_fd);
+			} else {
+				log("ADD Client failed", ERR);
 			}
 	    } else if (_pfds[i].revents & POLLIN) {
-			std::cout << "POLLIN " << i << std::endl;
-			handle_client_input(_clients[i - 1]);
+			std::cout << "general POLLIN " << i << std::endl;
+			handle_client_input(_clients[i]);
 	    } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 			log("Poll error on serial port", ERR);
 			break;

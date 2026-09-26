@@ -38,6 +38,8 @@ class Server
 	int handle_server_command(std::string& cmd);
 	int handle_client_command(Client* client, std::string& cmd);
 
+	int add_listening_stdin();
+	int add_listening_port();
 
 	void log(std::string str, log_level status);
 
