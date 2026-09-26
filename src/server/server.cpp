@@ -126,10 +126,11 @@ int Server::init_machine(Client* client)
 
 int Server::handle_client_input(Client* client)
 {
+	log("Handle client input", INFO);
     if (g_signal || !client) 
 		return 0;
 	if(!client->minitel) {
-		log("CLIENT IS FROM 30777", INFO);
+		log("CLIENT IS FROM 30777", WARN);
 		while(client->serial.available()) {
 		 char c = static_cast<char>(client->serial.read());
 		 std::cout << c;
@@ -262,8 +263,9 @@ int Server::listen()
             continue;
         }
 
+	std::cout << "retour :" << ret << std::endl;
     log("Iterate throught clients", INFO);
-	for (size_t i = 0; i < _pfds.size() - 1; i++) {
+	for (size_t i = 0; i < _pfds.size(); i++) {
 	    if (i == 0 && _pfds[i].revents & POLLIN) {
 			log("Read from STDIN",INFO);
 			std::string line;
@@ -284,7 +286,7 @@ int Server::listen()
 			}
 	    } else if (_pfds[i].revents & POLLIN) {
 			std::cout << "general POLLIN " << i << std::endl;
-			handle_client_input(_clients[i]);
+			handle_client_input(_clients[i - 2]);
 	    } else if (_pfds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 			log("Poll error on serial port", ERR);
 			break;
