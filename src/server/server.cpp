@@ -251,7 +251,6 @@ int Server::listen()
 {
 	
 	log("sever will be listening on port 30777 at index 1", INFO);
-
     log("start Listening clients", INFO);
     while (!g_signal) {
         int ret = poll(_pfds.data(), _pfds.size(), POLL_TIMEOUT);
@@ -263,6 +262,7 @@ int Server::listen()
             continue;
         }
 
+	std::vector<size_t> to_remove;
 	std::cout << "retour :" << ret << std::endl;
     log("Iterate throught clients", INFO);
 	for (size_t i = 0; i < _pfds.size(); i++) {
@@ -284,6 +284,11 @@ int Server::listen()
 			} else {
 				log("ADD Client failed", ERR);
 			}
+		} else if (_pfds[i].revents & POLLIN) {
+			bool stillConnected = handle_client_input(_clients[i - 2]);
+			if (!stillConnected) {
+				to_remove.push_back(i);
+			}
 	    } else if (_pfds[i].revents & POLLIN) {
 			std::cout << "general POLLIN " << i << std::endl;
 			handle_client_input(_clients[i - 2]);
@@ -293,6 +298,13 @@ int Server::listen()
 	    }
 	    _pfds[i].revents = 0;
 	}
+	// Erase back-to-front so earlier indices in the list stay valid
+for (auto it = to_remove.rbegin(); it != to_remove.rend(); ++it) {
+    size_t i = *it;
+    close(_pfds[i].fd);
+    _pfds.erase(_pfds.begin() + i);
+    _clients.erase(_clients.begin() + (i - 2)); // keep this offset consistent with wherever clients actually start
+}
     }
     return 0;
 }
